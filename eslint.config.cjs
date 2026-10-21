@@ -16,4 +16,8 @@ module.exports = [
       'no-unused-vars': ['error', { caughtErrors: 'none' }],
     },
   },
+  {
+    files: ['test/**/*.js', 'playwright.config.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
 ];

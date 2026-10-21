@@ -11,6 +11,8 @@ When facing trade-offs, follow this order: *Intuitive* (author-friendly) > *Simp
 - **Install**: `npm install` (or `npm ci`)
 - **Lint**: `npm run lint`
 - **Lint (fix)**: `npm run lint:fix`
+- **Unit tests**: `npm test` (`node:test` + jsdom, `test/**/*.test.js`)
+- **E2E tests**: `npm run test:e2e` (Playwright; needs `aem up` + `content/library`; run before a PR, not in CI). Rules: `docs/testing.md`
 - **Local dev**: `npx -y @adobe/aem-cli up --no-open --forward-browser-logs` (or `npm install -g @adobe/aem-cli` then `aem up`)
   - Server at http://localhost:3000 with auto-reload
   - View: playwright, puppeteer, or browser; if unavailable, ask human for feedback
@@ -147,7 +149,7 @@ URL construction uses `{repo}` and `{owner}` from `gh repo view --json nameWithO
 ## Pull request workflow (if a PR is requested)
 
 1. **Lint passes**: `npm run lint` must pass (CI enforces this)
-2. **Test locally**: Verify at http://localhost:3000
+2. **Test locally**: `npm test`, `npm run test:e2e`, and a browser check at 375/900/1280px plus keyboard a11y at http://localhost:3000 (see `docs/testing.md`)
 3. **Push to branch**: `https://{branch}--{repo}--{owner}.aem.page/{path}`
 4. **Performance**: Run [PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights/) on preview URL; fix until meeting Performance requirement
 5. **Open PR**: Include test URLs (before/after)—PR will be rejected without this. If no existing page demonstrates the change, create test content as static HTML and ask for help copying it to a CMS page.

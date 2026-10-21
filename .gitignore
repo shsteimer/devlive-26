@@ -21,3 +21,6 @@ tasks/todo.md
 .hlx/.da-token.json
 
 content
+lcov.info
+test-results/
+playwright-report/
