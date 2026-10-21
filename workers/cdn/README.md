@@ -2,7 +2,7 @@
 
 Proxies to `ORIGIN_HOSTNAME` and may rewrite HTML for gated pages (`handlers/gating.js`).
 
-**Auth (delivery):** `handlers/auth-check.js` — signed in if **`Cf-Access-*`** headers are set, or if the **`CF_Authorization`** cookie contains a valid Access JWT.
+**Auth (delivery):** `handlers/auth-check.js` — verifies the `CF_Authorization` cookie (or `Cf-Access-Jwt-Assertion`) as an RS256 JWT against the Access team certs, checking issuer, audience (`ACCESS_AUD`) and expiry. Tests: `npm test`.
 
 **Dependencies:** `cheerio` is installed under `workers/cdn/` (not the repo root). `npm run deploy:cdn` runs `npm install --prefix ./workers/cdn` first so Wrangler can bundle it.
 

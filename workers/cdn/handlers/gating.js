@@ -64,7 +64,7 @@ function htmlResponse(body, source, personalized = false) {
   });
 }
 
-export async function applyGatingIfNeeded(request, requestURL, response) {
+export async function applyGatingIfNeeded(request, requestURL, response, env) {
   if (request.method !== 'GET' || response.status !== 200) return response;
   if (SKIP.some((re) => re.test(requestURL.pathname))) return response;
   if (!(response.headers.get('content-type') || '').includes('text/html')) return response;
@@ -75,6 +75,6 @@ export async function applyGatingIfNeeded(request, requestURL, response) {
     return htmlResponse(html, response);
   }
 
-  const out = transformGatedHtml(html, isAuthenticated(request));
+  const out = transformGatedHtml(html, await isAuthenticated(request, env));
   return htmlResponse(out, response, out !== html);
 }

@@ -102,7 +102,7 @@ const handleRequest = async (request, env) => {
     },
   });
 
-  resp = await applyGatingIfNeeded(request, requestURL, resp);
+  resp = await applyGatingIfNeeded(request, requestURL, resp, env);
 
   resp = new Response(resp.body, resp);
   if (resp.status === 301 && savedSearch) {

@@ -11,6 +11,8 @@ routes = [
 [vars]
 ORIGIN_HOSTNAME = "main--devlive-26--shsteimer.aem.live"
 PUSH_INVALIDATION = "enabled"
+ACCESS_TEAM_DOMAIN = "ancient-queen-422c.cloudflareaccess.com"
+ACCESS_AUD = "b9a91f3bae82a475199ded9611641a0df3be0ecc5abb324ab18a157a82da9794"
 
 [observability.logs]
 enabled = true
