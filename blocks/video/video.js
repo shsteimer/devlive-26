@@ -11,7 +11,7 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
  * @param {string} link - The video link URL
  * @returns {string} - 'youtube', 'vimeo', or 'video'
  */
-function getVideoSource(link) {
+export function getVideoSource(link) {
   if (link.includes('youtube') || link.includes('youtu.be')) return 'youtube';
   if (link.includes('vimeo')) return 'vimeo';
   return 'video';
@@ -22,7 +22,7 @@ function getVideoSource(link) {
  * @param {string} source - The video source type ('youtube', 'vimeo', or 'video')
  * @returns {string} - Human-readable label
  */
-function getVideoTypeLabel(source) {
+export function getVideoTypeLabel(source) {
   const labels = {
     youtube: 'YouTube video',
     vimeo: 'Vimeo video',

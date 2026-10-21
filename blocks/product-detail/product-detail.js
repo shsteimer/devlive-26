@@ -4,7 +4,7 @@ import { getPictures } from '../../scripts/shared.js';
 
 const FIELDS = ['images', 'name', 'category', 'price', 'description', 'colors', 'sizes', 'details'];
 
-function readFields(block) {
+export function readFields(block) {
   const fields = {};
   [...block.children].forEach((row, i) => {
     const cells = [...row.children];
@@ -13,7 +13,7 @@ function readFields(block) {
   return fields;
 }
 
-function splitList(cell) {
+export function splitList(cell) {
   return (cell?.textContent || '').split(',').map((s) => s.trim()).filter(Boolean);
 }
 
@@ -70,7 +70,7 @@ function buildOptions(name, label, values, swatch = false) {
   return group;
 }
 
-function addSchema(fields, image) {
+export function addSchema(fields, image) {
   const script = document.createElement('script');
   script.type = 'application/ld+json';
   script.textContent = JSON.stringify({
