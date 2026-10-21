@@ -17,3 +17,7 @@ helix-importer-ui
 !AGENTS.md
 tasks/lessons.md
 tasks/todo.md
+
+.hlx/.da-token.json
+
+content
