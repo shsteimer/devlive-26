@@ -66,26 +66,27 @@ async function buildLocaleSwitcher(placeholders) {
   const locales = await fetchIndex('/locales.json');
   if (!locales.length) return null;
   const current = getLocale();
-  const rest = current.prefix ? window.location.pathname.slice(current.prefix.length) : '/';
+  const rest = window.location.pathname.slice(current.prefix.length) || '/';
+  const active = locales.find((l) => l.Path === current.prefix);
 
   const wrapper = document.createElement('div');
   wrapper.className = 'nav-locale';
+  wrapper.dataset.noLocalize = '';
   const button = document.createElement('button');
   button.type = 'button';
   button.setAttribute('aria-expanded', 'false');
   button.setAttribute('aria-label', placeholders.selectRegion || 'Select region');
-  const active = locales.find((l) => l.Code === current.code);
-  button.textContent = active ? active.Code.toUpperCase() : current.code.toUpperCase();
+  button.textContent = (active?.Label || current.prefix.slice(1) || current.lang).toUpperCase();
 
   const list = document.createElement('ul');
-  locales.forEach(({ Code, Name }) => {
+  locales.forEach(({ Path, Name, Lang }) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    a.href = `/${Code}${rest}`;
-    a.lang = Code;
-    a.hreflang = Code;
+    a.href = `${Path}${rest}`;
+    if (Lang) a.lang = Lang;
+    if (Lang) a.hreflang = Lang;
     a.textContent = Name;
-    if (Code === current.code) a.setAttribute('aria-current', 'true');
+    if (Path === current.prefix) a.setAttribute('aria-current', 'true');
     li.append(a);
     list.append(li);
   });

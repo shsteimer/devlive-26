@@ -1,15 +1,27 @@
 import { getMetadata } from './aem.js';
 
-const LOCALE_PATTERN = /^\/([a-z]{2}(?:-[a-z]{2})?)(?=\/|$)/;
+const LOCALE_PATTERN = /^\/([a-z]{2})(?:\/([a-z]{2}))?(?=\/|$)/;
 
 export function getLocale(pathname = window.location.pathname) {
-  const match = pathname.match(LOCALE_PATTERN);
-  const code = match ? match[1] : '';
+  const [, lang, region] = pathname.match(LOCALE_PATTERN) || [];
   return {
-    code: code || 'en',
-    prefix: code ? `/${code}` : '',
-    lang: (code || 'en').split('-')[0],
+    lang: lang || 'en',
+    region: region || '',
+    prefix: [lang, region].filter(Boolean).map((s) => `/${s}`).join(''),
+    htmlLang: region ? `${lang}-${region.toUpperCase()}` : (lang || 'en'),
   };
+}
+
+export function localizeLinks(el) {
+  const { prefix } = getLocale();
+  if (!prefix) return;
+  el.querySelectorAll('a[href]').forEach((a) => {
+    const url = new URL(a.href, window.location);
+    if (url.origin !== window.location.origin || a.closest('[data-no-localize]')) return;
+    const match = url.pathname.match(LOCALE_PATTERN);
+    if (!match || url.pathname.startsWith(`${prefix}/`) || url.pathname === prefix) return;
+    a.href = `${prefix}${url.pathname.slice(match[0].length)}${url.search}${url.hash}`;
+  });
 }
 
 export function getLocalizedPath(metaName, fallback) {

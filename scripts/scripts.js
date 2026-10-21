@@ -12,7 +12,7 @@ import {
   loadSections,
   loadCSS,
 } from './aem.js';
-import { getLocale, isGatedPage } from './shared.js';
+import { getLocale, isGatedPage, localizeLinks } from './shared.js';
 
 const { searchParams } = new URL(window.location.href);
 
@@ -73,6 +73,7 @@ function buildAutoBlocks(main) {
 }
 
 export function decorateMain(main) {
+  localizeLinks(main);
   decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
@@ -81,7 +82,7 @@ export function decorateMain(main) {
 }
 
 async function loadEager(doc) {
-  document.documentElement.lang = getLocale().lang;
+  document.documentElement.lang = getLocale().htmlLang;
   decorateTemplateAndTheme();
 
   const main = doc.querySelector('main');
