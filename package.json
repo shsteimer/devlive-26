@@ -13,7 +13,7 @@
     "deploy:auth": "npx wrangler deploy --config ./workers/auth/wrangler.toml",
     "dev:cdn": "npm install --prefix ./workers/cdn && npx wrangler dev --config ./workers/cdn/wrangler.toml",
     "deploy:cdn": "npm install --prefix ./workers/cdn && npx wrangler deploy --config ./workers/cdn/wrangler.toml",
-    "test": "node --test workers/cdn/test/"
+    "test": "node --test workers/cdn/test/*.test.js"
   },
   "repository": {
     "type": "git",
