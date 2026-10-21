@@ -6,6 +6,8 @@ import { isAuthenticated } from './auth-check.js';
 
 const SKIP = [/\/fragments\//, /\/(nav|footer)\.plain\.html$/];
 const GATED_META = /<meta[^>]+name=["']gated["'][^>]*content=["']true["']/i;
+const GATED_SECTION = /data-view=["']logged-(in|out)["']/i;
+const GATED_MD = /^\|\s*gated\s*\|\s*true\s*\|/im;
 
 function audience($, $section) {
   const a = String($section.attr('data-view') || '').trim().toLowerCase();
@@ -19,10 +21,10 @@ function audience($, $section) {
   return v === 'logged-in' || v === 'logged-out' ? v : null;
 }
 
-function transformGatedHtml(html, loggedIn) {
-  const $ = load(html);
+function transformGatedHtml(html, loggedIn, plain = false) {
+  const $ = load(html, null, !plain);
   const removeEls = new Set();
-  $('main > div').each((_, el) => {
+  $(plain ? ':root' : 'main > div').each((_, el) => {
     const $s = $(el);
     const aud = audience($, $s);
     if (aud) {
@@ -67,14 +69,24 @@ function htmlResponse(body, source, personalized = false) {
 export async function applyGatingIfNeeded(request, requestURL, response, env) {
   if (request.method !== 'GET' || response.status !== 200) return response;
   if (SKIP.some((re) => re.test(requestURL.pathname))) return response;
-  if (!(response.headers.get('content-type') || '').includes('text/html')) return response;
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('text/markdown')) {
+    const md = await response.text();
+    if (GATED_MD.test(md)) return new Response('Not Found', { status: 404, headers: { 'Cache-Control': 'private, no-store' } });
+    return htmlResponse(md, response);
+  }
+
+  if (!contentType.includes('text/html')) return response;
 
   const html = await response.text();
+  const plain = requestURL.pathname.endsWith('.plain.html');
+  const gated = plain ? GATED_SECTION.test(html) : GATED_META.test(html);
 
-  if (!GATED_META.test(html)) {
+  if (!gated) {
     return htmlResponse(html, response);
   }
 
-  const out = transformGatedHtml(html, await isAuthenticated(request, env));
+  const out = transformGatedHtml(html, await isAuthenticated(request, env), plain);
   return htmlResponse(out, response, out !== html);
 }

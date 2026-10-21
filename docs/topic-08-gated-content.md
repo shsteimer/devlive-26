@@ -76,8 +76,8 @@ On preview hosts (`aem.page`, `localhost`, DA preview), a floating **"AUTH STATE
 
 ## Known gaps – FIX BEFORE DEMO
 
-1. **`.plain.html` and `.md` bypass gating.** `/en/us/club/members.plain.html` and `.md` return all sections, because the gated meta tag isn't in those variants. Fix: in the worker, apply section filtering to `.plain.html` and block or filter `.md`.
-2. **Origin is public.** `main--devlive-26--shsteimer.aem.live/...` serves the ungated page. Fix: enable EDS site authentication on live and give the CDN worker a site token (`ORIGIN_AUTHENTICATION`). This is standard practice and worth mentioning on stage ("lock the origin, gate at the edge").
+1. ~~`.plain.html` and `.md` bypass gating~~ — fixed: worker filters sections in `.plain.html` and returns 404 for `.md` of gated pages (tests in `workers/cdn/test/gating.test.js`).
+2. **Origin is public (accepted for demo).** `main--devlive-26--shsteimer.aem.live/...` serves the ungated page. Fix: enable EDS site authentication on live and give the CDN worker a site token (`ORIGIN_AUTHENTICATION`). This is standard practice and worth mentioning on stage ("lock the origin, gate at the edge").
 3. Sign-in returns the user to the page they clicked from. Confirm the round trip works on `/en/us/club/members` and the translated locales.
 
 ## Code map
