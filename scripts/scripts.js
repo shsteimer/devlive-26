@@ -11,15 +11,10 @@ import {
   loadSection,
   loadSections,
   loadCSS,
-  getMetadata,
 } from './aem.js';
-import {
-  initMartech, martechEager, martechLazy, martechDelayed,
-} from '../plugins/martech/src/index.js';
-import { getLocale } from './shared.js';
+import { getLocale, isGatedPage } from './shared.js';
 
 const { searchParams } = new URL(window.location.href);
-const IS_EDITOR = searchParams.has('dapreview') || searchParams.has('quick-edit');
 
 function buildHeroBlock(main) {
   const h1 = main.querySelector('h1');
@@ -89,26 +84,11 @@ async function loadEager(doc) {
   document.documentElement.lang = getLocale().lang;
   decorateTemplateAndTheme();
 
-  const martechLoaded = !IS_EDITOR && initMartech(
-    {
-      datastreamId: 'd73be188-bc37-4ede-a5da-8aa7cd1e343b',
-      orgId: '138A07885EE042D20A495CFA@AdobeOrg',
-      defaultConsent: 'in',
-    },
-    {
-      personalization: !!getMetadata('target'),
-      launchUrls: ['https://assets.adobedtm.com/ace20f3fb313/d4fa519d75cf/launch-452113bfea88.min.js'],
-    },
-  );
-
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-    await Promise.all([
-      martechLoaded && martechLoaded.then(martechEager),
-      loadSection(main.querySelector('.section'), waitForFirstImage),
-    ]);
+    await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
 
   try {
@@ -123,7 +103,10 @@ async function loadLazy(doc) {
   loadHeader(doc.querySelector('header'));
 
   const main = doc.querySelector('main');
+  const gated = isGatedPage() ? await import('./utils/gated-content.js') : null;
+  gated?.initContentProtection();
   await loadSections(main);
+  gated?.applyContentProtection();
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
@@ -132,14 +115,10 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
-  if (!IS_EDITOR) await martechLazy();
 }
 
 function loadDelayed() {
-  window.setTimeout(() => {
-    if (!IS_EDITOR) martechDelayed();
-    import('./delayed.js');
-  }, 3000);
+  window.setTimeout(() => import('./delayed.js'), 3000);
 }
 
 export async function loadPage() {

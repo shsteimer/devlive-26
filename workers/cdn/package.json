@@ -1,0 +1,8 @@
+{
+  "name": "devlive-26-cdn-worker",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.1.0"
+  }
+}

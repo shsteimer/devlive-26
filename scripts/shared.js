@@ -18,6 +18,10 @@ export function getLocalizedPath(metaName, fallback) {
   return `${getLocale().prefix}${fallback}`;
 }
 
+export function isGatedPage() {
+  return String(getMetadata('gated') || '').trim().toLowerCase() === 'true';
+}
+
 export function createTag(tag, attributes = {}, content = null) {
   const el = document.createElement(tag);
   Object.entries(attributes).forEach(([key, value]) => {

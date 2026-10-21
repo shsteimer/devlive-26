@@ -77,7 +77,9 @@ When facing trade-offs, follow this order: *Intuitive* (author-friendly) > *Simp
 │   ├── shared.js         # Shared utilities (locale helpers, createTag, fetchIndex, getPictures)
 │   ├── placeholders.js   # Locale-aware placeholders ({locale}/placeholders.json)
 │   └── delayed.js        # Delayed functionality
-├── plugins/martech/      # Adobe martech plugin (alloy/Target/Launch)
+├── plugins/martech/      # Adobe martech plugin (alloy/Target/Launch); currently not wired up
+├── scripts/shared/auth-api.js, scripts/utils/gated-content.js  # Gated content (author preview: ?auth=true)
+├── workers/              # Cloudflare Workers: cdn (gating proxy), auth (Cloudflare Access session)
 ├── docs/                 # Talk notes (not served)
 ├── icons/                # SVG files; reference in code with <span class="icon icon-{name}"></span>
 ├── fonts/                # Web fonts (Roboto, Roboto Condensed)
@@ -137,7 +139,11 @@ URL construction uses `{repo}` and `{owner}` from `gh repo view --json nameWithO
 - **Preview**: `https://{branch}--{repo}--{owner}.aem.page/{path}`
 - **Live**: `https://main--{repo}--{owner}.aem.live/{path}`
 
-## Pull request workflow
+## Git workflow
+
+- Pushing directly to `main` is authorized for this repo (demo site). No branch/PR needed.
+
+## Pull request workflow (if a PR is requested)
 
 1. **Lint passes**: `npm run lint` must pass (CI enforces this)
 2. **Test locally**: Verify at http://localhost:3000

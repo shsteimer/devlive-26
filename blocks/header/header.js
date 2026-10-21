@@ -1,5 +1,6 @@
 import { fetchPlaceholders } from '../../scripts/placeholders.js';
 import { getLocale, getLocalizedPath, fetchIndex } from '../../scripts/shared.js';
+import { getLoginUrl, getLogoutUrl, getSessionState } from '../../scripts/shared/auth-api.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const isDesktop = window.matchMedia('(min-width: 900px)');
@@ -99,6 +100,22 @@ async function buildLocaleSwitcher(placeholders) {
   return wrapper;
 }
 
+async function initAuth(navTools, placeholders) {
+  const link = navTools.querySelector('a[href*="/auth/login"]');
+  if (!link) return;
+  link.classList.add('nav-auth');
+  const loginLabel = link.textContent.trim() || placeholders.login || 'Sign in';
+  link.href = getLoginUrl();
+  const session = await getSessionState();
+  if (session.authenticated) {
+    link.href = getLogoutUrl();
+    link.textContent = placeholders.logout || 'Sign out';
+    if (session.email) link.title = session.email;
+  } else {
+    link.textContent = loginLabel;
+  }
+}
+
 export default async function decorate(block) {
   const placeholders = await fetchPlaceholders();
   const fragment = await loadFragment(getLocalizedPath('nav', '/nav'));
@@ -131,6 +148,7 @@ export default async function decorate(block) {
         if (name) a.setAttribute('aria-label', placeholders[name] || name);
       }
     });
+    initAuth(navTools, placeholders);
     const switcher = await buildLocaleSwitcher(placeholders);
     if (switcher) (navTools.querySelector('.default-content-wrapper') || navTools).append(switcher);
   }

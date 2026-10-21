@@ -8,7 +8,11 @@
     "lint:css": "stylelint \"blocks/**/*.css\" \"styles/*.css\"",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev:auth": "npx wrangler dev --config ./workers/auth/wrangler.toml",
+    "deploy:auth": "npx wrangler deploy --config ./workers/auth/wrangler.toml",
+    "dev:cdn": "npm install --prefix ./workers/cdn && npx wrangler dev --config ./workers/cdn/wrangler.toml",
+    "deploy:cdn": "npm install --prefix ./workers/cdn && npx wrangler deploy --config ./workers/cdn/wrangler.toml"
   },
   "repository": {
     "type": "git",

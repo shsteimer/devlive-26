@@ -1,0 +1,12 @@
+name = "devlive-26-cdn"
+main = "index.js"
+compatibility_date = "2026-03-13"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+ORIGIN_HOSTNAME = "main--devlive-26--shsteimer.aem.network"
+PUSH_INVALIDATION = "enabled"
+
+[observability.logs]
+enabled = true
