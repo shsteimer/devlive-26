@@ -343,6 +343,7 @@ main > .section.dark {
 
 main > .section.accent {
   --background-color: var(--color-volt);
+  --muted-color: var(--color-ink);
 
   background-color: var(--background-color);
   color: var(--text-color);
@@ -357,4 +358,8 @@ main > .section.dark a.button:focus-visible {
 
 main > .section > .default-content-wrapper > h2:first-child + p {
   color: var(--muted-color);
+}
+
+main > .section:first-of-type > .default-content-wrapper:first-child {
+  padding-top: 40px;
 }

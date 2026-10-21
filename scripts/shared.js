@@ -1,5 +1,4 @@
 import { getMetadata } from './aem.js';
-import { fetchPlaceholders } from './placeholders.js';
 
 const LOCALE_PATTERN = /^\/([a-z]{2}(?:-[a-z]{2})?)(?=\/|$)/;
 
@@ -17,11 +16,6 @@ export function getLocalizedPath(metaName, fallback) {
   const meta = getMetadata(metaName);
   if (meta) return new URL(meta, window.location).pathname;
   return `${getLocale().prefix}${fallback}`;
-}
-
-export async function getPlaceholders() {
-  const { prefix } = getLocale();
-  return fetchPlaceholders(prefix || 'default');
 }
 
 export function createTag(tag, attributes = {}, content = null) {
@@ -47,12 +41,7 @@ export async function fetchIndex(path = '/query-index.json') {
   return window.indexCache[path];
 }
 
-export function formatPrice(value, currency, lang) {
-  const num = Number(String(value).replace(/[^0-9.]/g, ''));
-  if (!currency || Number.isNaN(num) || !String(value).trim()) return String(value || '');
-  try {
-    return new Intl.NumberFormat(lang, { style: 'currency', currency }).format(num);
-  } catch (e) {
-    return String(value);
-  }
+export function getPictures(el) {
+  if (!el) return [];
+  return [...el.querySelectorAll('picture, img')].filter((node) => node.tagName === 'PICTURE' || !node.closest('picture'));
 }

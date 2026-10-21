@@ -17,7 +17,7 @@
 .form select {
   scroll-margin: 1em;
   width: 100%;
-  border: 1px solid var(--dark-color);
+  border: 1px solid var(--muted-color);
   border-radius: 4px;
   padding: 0.5em 0.75em;
   background-color: var(--background-color);
@@ -63,9 +63,9 @@
 .form input[readonly],
 .form textarea[readonly],
 .form select[readonly] {
-  border-color: #d1d1d1;
+  border-color: var(--border-color);
   background-color: var(--light-color);
-  color: var(--dark-color);
+  color: var(--muted-color);
 }
 
 .form input[readonly]:focus,
@@ -158,8 +158,8 @@
   width: calc(2em + (2 * 1px));
   height: calc(1em + (2 * 1px));
   border-radius: 1em;
-  border: 1px solid var(--dark-color);
-  background-color: var(--dark-color);
+  border: 1px solid var(--muted-color);
+  background-color: var(--muted-color);
   transition: background-color 0.2s;
   cursor: pointer;
 }
@@ -186,8 +186,8 @@
 }
 
 .form .form-field.toggle-field label input:disabled + span {
-  border-color: #d1d1d1;
-  background-color: #d1d1d1;
+  border-color: var(--border-color);
+  background-color: var(--border-color);
   cursor: default;
 }
 
@@ -197,7 +197,7 @@
 
 .form .field-help-text {
   margin-top: 0.2em;
-  color: var(--dark-color);
+  color: var(--muted-color);
   font-size: var(--body-font-size-xs);
 }
 
@@ -211,17 +211,17 @@
 
 .form .button-wrapper button.button:disabled,
 .form .button-wrapper button.button:hover:disabled {
-  border-color: var(--dark-color);
-  background-color: var(--dark-color);
+  border-color: var(--muted-color);
+  background-color: var(--muted-color);
   color: var(--background-color);
   cursor: progress;
 }
 
 .form .button-wrapper button.button.secondary:disabled,
 .form .button-wrapper button.button.secondary:hover:disabled {
-  border-color: var(--dark-color);
+  border-color: var(--muted-color);
   background-color: var(--light-color);
-  color: var(--dark-color);
+  color: var(--muted-color);
 }
 
 @media (width >= 600px) {

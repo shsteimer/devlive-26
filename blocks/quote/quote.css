@@ -1,41 +1,58 @@
 .quote blockquote {
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 24px;
-  max-width: 900px;
-}
-
-@media (width >= 900px) {
-  .quote blockquote {
-    padding: 0 32px;
-  }
+  padding: 0;
 }
 
 .quote blockquote .quote-quotation {
-  font-size: 120%;
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-font-size-l);
+  font-weight: 700;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.quote blockquote .quote-quotation::before {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 8px;
+  margin-bottom: 24px;
+  background-color: var(--color-flame);
 }
 
 .quote blockquote .quote-quotation > :first-child {
-  text-indent: -0.5ch;
-}
-
-.quote blockquote .quote-quotation > :first-child::before,
-.quote blockquote .quote-quotation > :last-child::after {
-  line-height: 0;
+  margin-top: 0;
 }
 
 .quote blockquote .quote-quotation > :first-child::before {
-  content: "“";
+  content: '“';
 }
 
 .quote blockquote .quote-quotation > :last-child::after {
-  content: "”";
+  content: '”';
 }
 
 .quote blockquote .quote-attribution {
-  text-align: right;
+  margin-top: 24px;
+  color: var(--muted-color);
+}
+
+.quote blockquote .quote-attribution p {
+  margin: 0;
+}
+
+.quote blockquote .quote-attribution cite {
+  color: var(--text-color);
+  font-style: normal;
+  font-weight: 700;
 }
 
 .quote blockquote .quote-attribution > :first-child::before {
-  content: "—";
+  content: '—';
   padding-right: 0.5ch;
+}
+
+.section.accent .quote blockquote .quote-quotation::before {
+  background-color: var(--color-ink);
 }

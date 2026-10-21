@@ -20,14 +20,13 @@ When facing trade-offs, follow this order: *Intuitive* (author-friendly) > *Simp
     - `decorate /path/to/page --format md` — decorated output as markdown
     - `decorate /path/to/page --selector "main .section"` — specific elements only
     - `decorate /path/to/page --no-header --no-footer` — main content only
-- **Cloudflare Workers** (contact form): `npm run dev:contact-us`, `npm run deploy:contact-us`
+- **Content**: `content/` is a local DA checkout (`aem content clone/add/commit/push`); `aem up` serves it locally. Preview/publish done by Sean.
 
 ## Stack
 
 - Node.js; npm only (not pnpm/yarn)
 - ESLint with eslint-config-airbnb-base; Stylelint with stylelint-config-standard
 - AEM Edge Delivery: https://www.aem.live/
-- Cloudflare Workers (Wrangler) for serverless endpoints
 
 ## Hard constraints
 
@@ -75,18 +74,13 @@ When facing trade-offs, follow this order: *Intuitive* (author-friendly) > *Simp
 ├── scripts/
 │   ├── aem.js            # Core AEM library for page decoration logic
 │   ├── scripts.js        # Page decoration entry point and global utilities
-│   ├── shared.js         # Shared utilities (createTag, query-index helpers, Chart.js loader)
-│   └── delayed.js        # Delayed functionality (social share injection, ShareThis)
-├── templates/
-│   └── article/          # Article page template
-├── tools/
-│   ├── quick-edit/       # AEM Sidekick quick-edit plugin
-│   ├── search/           # Search tooling
-│   └── plugins/          # Additional Sidekick plugins
-├── workers/
-│   └── contact_us/       # Cloudflare Worker for contact form (Wrangler)
+│   ├── shared.js         # Shared utilities (locale helpers, createTag, fetchIndex, getPictures)
+│   ├── placeholders.js   # Locale-aware placeholders ({locale}/placeholders.json)
+│   └── delayed.js        # Delayed functionality
+├── plugins/martech/      # Adobe martech plugin (alloy/Target/Launch)
+├── docs/                 # Talk notes (not served)
 ├── icons/                # SVG files; reference in code with <span class="icon icon-{name}"></span>
-├── fonts/                # Web fonts (Montserrat, EB Garamond, Roboto, JetBrains Mono)
+├── fonts/                # Web fonts (Roboto, Roboto Condensed)
 ├── head.html             # Global <head> content
 └── 404.html              # Custom error page
 ```
@@ -106,9 +100,9 @@ When facing trade-offs, follow this order: *Intuitive* (author-friendly) > *Simp
     - Pass `--html-folder drafts` when starting dev server
     - Use `.html` or `.plain.html` extensions
 - **Three-phase loading**: Pages load in phases for performance (eager → LCP, lazy → rest, delayed → martech); see `loadPage()` in `scripts.js`
-- **Dark/light theme**: Persisted in `localStorage` (`demo-theme`), applied via `data-theme` attribute and `light-scheme`/`dark-scheme` body classes
-- **Auto-blocking**: Fragment links (`/fragments/*`) and YouTube URLs are automatically wrapped in blocks; see `buildAutoBlocks()` in `scripts.js`. Use `#_dnb` hash to opt out of fragment auto-blocking.
-- **Dynamic blocks**: Tabs and modal are conditionally loaded after sections via `blocks/dynamic/index.js`
+- **Locales**: First path segment (`/en`, `/de`, `/en-gb`…) is the locale. Nav, footer and placeholders resolve to `/{locale}/nav`, `/{locale}/footer`, `/{locale}/placeholders.json`. Locale switcher reads `/locales.json`.
+- **Auto-blocking**: Fragment links (`/fragments/*`) are inlined and a leading image + h1 becomes a hero; see `buildAutoBlocks()` in `scripts.js`. Links to `/modals/*` open in a modal.
+- **Images**: Content references external (Unsplash) images; blocks must handle bare `<img>` as well as `<picture>` (use `getPictures()`).
 
 ## Block architecture
 

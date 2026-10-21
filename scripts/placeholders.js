@@ -11,13 +11,14 @@
  */
 
 import { toCamelCase } from './aem.js';
+import { getLocale } from './shared.js';
 
 /**
  * Gets placeholders object.
  * @param {string} [prefix] Location of placeholders
  * @returns {object} Window placeholders object
  */
-export async function fetchPlaceholders(prefix = 'default') {
+export async function fetchPlaceholders(prefix = getLocale().prefix || 'default') {
   window.placeholders = window.placeholders || {};
   if (!window.placeholders[prefix]) {
     window.placeholders[prefix] = new Promise((resolve) => {
