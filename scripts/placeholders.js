@@ -33,7 +33,7 @@ export async function fetchPlaceholders(prefix = getLocale().prefix || 'default'
           json.data
             .filter((placeholder) => placeholder.Key)
             .forEach((placeholder) => {
-              placeholders[toCamelCase(placeholder.Key)] = placeholder.Text;
+              placeholders[toCamelCase(placeholder.Key.trim())] = (placeholder.Text || '').trim();
             });
           window.placeholders[prefix] = placeholders;
           resolve(window.placeholders[prefix]);
