@@ -31,7 +31,7 @@ npm run dev:auth
 2. Visit the login endpoint, for example:
 
 ```text
-https://devlive-26-auth.aem-poc-lab.workers.dev/auth/login?returnTo=http://localhost:3000/
+https://devlive.shsteimer.com/auth/login?returnTo=http://localhost:3000/
 ```
 
 3. Enter an allowed email address on the Access screen.
@@ -43,7 +43,7 @@ https://devlive-26-auth.aem-poc-lab.workers.dev/auth/login?returnTo=http://local
 Visit:
 
 ```text
-https://devlive-26-auth.aem-poc-lab.workers.dev/auth/logout
+https://devlive.shsteimer.com/auth/logout
 ```
 
 ## Site integration
@@ -54,5 +54,5 @@ Header auth URLs are centralized in:
 
 Update `AUTH_ORIGIN` there if your worker hostname changes.
 
-Logout uses app-domain endpoint: `https://devlive-26-auth.aem-poc-lab.workers.dev/cdn-cgi/access/logout`
+Logout uses app-domain endpoint: `https://devlive.shsteimer.com/cdn-cgi/access/logout`
 without additional redirect parameters for demo simplicity.

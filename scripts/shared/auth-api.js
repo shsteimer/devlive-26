@@ -1,4 +1,4 @@
-const AUTH_ORIGIN = 'https://demo.bbird.live';
+const AUTH_ORIGIN = 'https://devlive.shsteimer.com';
 const AUTH_PATHS = {
   login: '/auth/login',
   logout: '/auth/logout',

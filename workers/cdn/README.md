@@ -8,7 +8,7 @@ Proxies to `ORIGIN_HOSTNAME` and may rewrite HTML for gated pages (`handlers/gat
 
 **Deploy:** `npm run deploy:cdn`
 
-**Auth worker** (`/auth/*`) is separate — route **`<your-domain>/auth/*`** should stay **more specific** than **`<your-domain>/*`** if both are on the same zone.
+**Auth worker** (`/auth/*`) is separate — route **`devlive.shsteimer.com/auth/*`** should stay **more specific** than **`devlive.shsteimer.com/*`** if both are on the same zone.
 
 **Skips gating:** `/fragments/`, `/nav.plain.html`, `/footer.plain.html`
 

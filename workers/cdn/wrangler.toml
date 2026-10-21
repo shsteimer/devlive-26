@@ -4,8 +4,12 @@ compatibility_date = "2026-03-13"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
+routes = [
+  { pattern = "devlive.shsteimer.com/*", zone_name = "shsteimer.com" },
+]
+
 [vars]
-ORIGIN_HOSTNAME = "main--devlive-26--shsteimer.aem.network"
+ORIGIN_HOSTNAME = "main--devlive-26--shsteimer.aem.live"
 PUSH_INVALIDATION = "enabled"
 
 [observability.logs]
