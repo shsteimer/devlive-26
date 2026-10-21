@@ -1,8 +1,8 @@
 import { loadScript } from './aem.js';
 
-const GTM_ID = '';
-const CLARITY_ID = '';
-const TAWK_ID = '';
+const GTM_ID = 'GTM-WVRTQJLJ';
+const CLARITY_ID = 'z11rb6aadt';
+const TAWK_ID = '6ad8543d22a30434b2b29ad6/1k5egi4kr';
 
 if (GTM_ID) {
   window.dataLayer = window.dataLayer || [];
