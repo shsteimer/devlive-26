@@ -4,6 +4,19 @@
   move-to-http-header="true"
 >
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script nonce="aem">
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+var consent=/(?:^|;\s*)consent=accepted/.test(document.cookie)||/[?&]consent=(accept|accepted|true|1|yes)(&|$)/.test(location.search)?'granted':'denied';
+gtag('consent','default',{ad_storage:consent,ad_user_data:consent,ad_personalization:consent,analytics_storage:consent});
+</script>
+<!-- Google Tag Manager -->
+<script nonce="aem">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;var n=d.querySelector('[nonce]');
+n&&j.setAttribute('nonce',n.nonce||n.getAttribute('nonce'));f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WVRTQJLJ');</script>
+<!-- End Google Tag Manager -->
 <script nonce="aem" src="/scripts/consent-check.js" type="module"></script>
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>
