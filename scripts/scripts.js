@@ -120,7 +120,6 @@ async function loadLazy(doc) {
 
 function loadDelayed() {
   import('./delayed.js');
-  import('./consent-check.js');
 }
 
 export async function loadPage() {
