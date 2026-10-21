@@ -8,7 +8,6 @@ Write a test only when a wrong answer is plausible and costly to miss. Coverage 
 |---|---|---|---|
 | Lint | `npm run lint` | every commit (husky), every push (CI) | yes |
 | Unit | `npm test` | every push (CI) | yes |
-| SonarQube | CI | every push | yes |
 | Browser check | agent/human, `aem up` | before a PR | no |
 | Block E2E | `npm run test:e2e` | before a PR | no |
 | PageSpeed | AEM Code Sync bot on the PR | every PR | yes |
