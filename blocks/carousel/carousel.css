@@ -51,6 +51,14 @@
   object-fit: cover;
 }
 
+.carousel .carousel-slide .carousel-slide-image img:not(picture > img) {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
 .carousel .carousel-slide .carousel-slide-content {
   z-index: 1;
   margin: 68px;
