@@ -141,7 +141,8 @@ URL construction uses `{repo}` and `{owner}` from `gh repo view --json nameWithO
 
 ## Git workflow
 
-- Pushing directly to `main` is authorized for this repo (demo site). No branch/PR needed.
+- Pushing directly to `main` is authorized for this repo (demo site). No branch/PR needed. Agent pushes are blocked by agent-git-guard, so Sean pushes; tell him when commits are ready.
+- DA content: `aem content push --force` is always OK (conflict detection gives false positives). Sean does preview/publish.
 
 ## Pull request workflow (if a PR is requested)
 
