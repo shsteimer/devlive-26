@@ -1,5 +1,13 @@
 import { toClassName } from '../../scripts/aem.js';
 
+export function getTargetTabIndex(key, current, count) {
+  if (key === 'ArrowRight') return (current + 1) % count;
+  if (key === 'ArrowLeft') return (current - 1 + count) % count;
+  if (key === 'Home') return 0;
+  if (key === 'End') return count - 1;
+  return null;
+}
+
 export default async function decorate(block) {
   // build tablist
   const tablist = document.createElement('div');
@@ -28,18 +36,30 @@ export default async function decorate(block) {
     button.setAttribute('aria-selected', !i);
     button.setAttribute('role', 'tab');
     button.setAttribute('type', 'button');
+    button.tabIndex = i ? -1 : 0;
     button.addEventListener('click', () => {
       block.querySelectorAll('[role=tabpanel]').forEach((panel) => {
         panel.setAttribute('aria-hidden', true);
       });
       tablist.querySelectorAll('button').forEach((btn) => {
         btn.setAttribute('aria-selected', false);
+        btn.tabIndex = -1;
       });
       tabpanel.setAttribute('aria-hidden', false);
       button.setAttribute('aria-selected', true);
+      button.tabIndex = 0;
     });
     tablist.append(button);
     tab.remove();
+  });
+
+  tablist.addEventListener('keydown', (e) => {
+    const buttons = [...tablist.querySelectorAll('[role=tab]')];
+    const target = getTargetTabIndex(e.key, buttons.indexOf(document.activeElement), buttons.length);
+    if (target === null) return;
+    e.preventDefault();
+    buttons[target].focus();
+    buttons[target].click();
   });
 
   block.prepend(tablist);
