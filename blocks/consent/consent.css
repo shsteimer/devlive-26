@@ -1,0 +1,32 @@
+.consent {
+  position: fixed;
+  inset: auto 16px 16px;
+  z-index: 100;
+  box-sizing: border-box;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  box-shadow: 0 4px 24px rgb(0 0 0 / 20%);
+}
+
+.consent .consent-text > :first-child {
+  margin-top: 0;
+}
+
+.consent .consent-text h2 {
+  font-size: var(--heading-font-size-s);
+}
+
+.consent .consent-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.consent .consent-buttons button {
+  margin: 0;
+}

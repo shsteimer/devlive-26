@@ -119,7 +119,8 @@ async function loadLazy(doc) {
 }
 
 function loadDelayed() {
-  window.setTimeout(() => import('./delayed.js'), 3000);
+  import('./delayed.js');
+  import('./consent-check.js');
 }
 
 export async function loadPage() {
