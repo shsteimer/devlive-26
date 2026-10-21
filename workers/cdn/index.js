@@ -88,6 +88,10 @@ const handleRequest = async (request, env) => {
   const req = new Request(url, request);
   req.headers.set('x-forwarded-host', req.headers.get('host'));
   req.headers.set('x-byo-cdn-type', 'cloudflare');
+  if (extension === '' || url.pathname.endsWith('.plain.html')) {
+    req.headers.delete('if-none-match');
+    req.headers.delete('if-modified-since');
+  }
   if (env.PUSH_INVALIDATION !== 'disabled') {
     req.headers.set('x-push-invalidation', 'enabled');
   }

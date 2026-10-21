@@ -50,13 +50,13 @@ function mergeVaryCookie(headers) {
   headers.set('Vary', `${vary}, Cookie`);
 }
 
-/** @param {boolean} [personalized] — gated HTML was changed per user; tighten cache + Vary. */
+/** @param {boolean} [personalized] — gated page; never cache or revalidate. */
 function htmlResponse(body, source, personalized = false) {
   const headers = new Headers(source.headers);
   if (personalized) {
-    headers.delete('content-length');
-    headers.set('Cache-Control', 'private, no-cache, must-revalidate');
-    headers.delete('Age');
+    ['content-length', 'age', 'etag', 'last-modified', 'cdn-cache-control', 'surrogate-control']
+      .forEach((h) => headers.delete(h));
+    headers.set('Cache-Control', 'private, no-store');
     mergeVaryCookie(headers);
   }
   return new Response(body, {
@@ -88,5 +88,5 @@ export async function applyGatingIfNeeded(request, requestURL, response, env) {
   }
 
   const out = transformGatedHtml(html, await isAuthenticated(request, env), plain);
-  return htmlResponse(out, response, out !== html);
+  return htmlResponse(out, response, true);
 }

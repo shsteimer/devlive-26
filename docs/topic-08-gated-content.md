@@ -29,7 +29,7 @@ Browser ──► Cloudflare (devlive.shsteimer.com)
 - **Identity**: Cloudflare Access (Zero Trust) with one-time PIN by email. It can be swapped for any IdP Access supports (Okta, Entra ID, Google, SAML/OIDC). EDS doesn't care.
 - **Login**: only `/auth/*` is behind Access, so the rest of the site stays public and fully cached. After login, Access sets the `CF_Authorization` cookie (a signed JWT) on the domain.
 - **Enforcement**: the CDN worker (`workers/cdn`) checks the JWT on every request for a gated page, then removes sections server-side. Hidden content **never reaches the browser**. It is not just hidden with CSS or JS.
-- **Caching**: non-gated pages are cached at the edge as normal. Gated page responses are rewritten per visitor and marked `private, no-cache`, `Vary: Cookie`. The origin response itself is still edge-cached.
+- **Caching**: public pages are edge-cached as normal. Gated pages are rendered per visitor from the edge-cached origin copy and returned `Cache-Control: private, no-store`, `Vary: Cookie`, with no `ETag`, `Last-Modified` or `CDN-Cache-Control`. The worker strips conditional request headers for HTML, so a browser can never revalidate a signed-out copy into a signed-in session (or the reverse).
 - **UI**: the header turns an authored "Sign in" link (`/auth/login`) into Sign in / Sign out. It calls `/auth/session` to find out who is signed in.
 
 ## Authoring model (what authors do in the document)

@@ -61,3 +61,25 @@ test('non-gated .md passes through', async () => {
   assert.equal(status, 200);
   assert.equal(text, md);
 });
+
+test('gated responses are private, no-store and carry no validators', async () => {
+  const url = new URL('https://example.com/en/club/members');
+  const response = new Response(FULL, {
+    status: 200,
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      'cache-control': 'max-age=7200, must-revalidate',
+      'cdn-cache-control': 'max-age=172800, must-revalidate',
+      'surrogate-control': 'max-age=172800',
+      'last-modified': 'Wed, 21 Oct 2026 04:14:14 GMT',
+      etag: '"abc"',
+      age: '10',
+    },
+  });
+  const out = await applyGatingIfNeeded(new Request(url), url, response, env);
+  assert.equal(out.headers.get('cache-control'), 'private, no-store');
+  ['cdn-cache-control', 'surrogate-control', 'last-modified', 'etag', 'age'].forEach((h) => {
+    assert.equal(out.headers.get(h), null, h);
+  });
+  assert.match(out.headers.get('vary'), /cookie/i);
+});
