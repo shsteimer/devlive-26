@@ -10,6 +10,7 @@ export default function setupDom(url = 'http://localhost:3000/') {
   global.document = window.document;
   global.MutationObserver = window.MutationObserver;
   global.DOMParser = window.DOMParser;
+  global.CustomEvent = window.CustomEvent;
   global.IntersectionObserver = class {
     observe() {}
 
