@@ -1,171 +1,46 @@
-import { toClassName, loadCSS } from '../../scripts/aem.js';
+import { toClassName } from '../../scripts/aem.js';
 
-let tabsStyleLoaded;
+export default async function decorate(block) {
+  // build tablist
+  const tablist = document.createElement('div');
+  tablist.className = 'tabs-list';
+  tablist.setAttribute('role', 'tablist');
 
-function getTabDefinition(section, fallbackIdx = 0) {
-  const tabId = String(section.dataset?.tabId || '').trim();
-  if (!tabId) return null;
+  // decorate tabs and tabpanels
+  const tabs = [...block.children].map((child) => child.firstElementChild);
+  tabs.forEach((tab, i) => {
+    const id = toClassName(tab.textContent);
 
-  const title = String(section.dataset?.tabTitle || tabId).trim() || `Tab ${fallbackIdx + 1}`;
-  return {
-    id: toClassName(tabId) || `tab-${fallbackIdx + 1}`,
-    title,
-    section,
-  };
-}
+    // decorate tabpanel
+    const tabpanel = block.children[i];
+    tabpanel.className = 'tabs-panel';
+    tabpanel.id = `tabpanel-${id}`;
+    tabpanel.setAttribute('aria-hidden', !!i);
+    tabpanel.setAttribute('aria-labelledby', `tab-${id}`);
+    tabpanel.setAttribute('role', 'tabpanel');
 
-function collectTabSections(currSection) {
-  const tabDefs = [];
-  let next = currSection.nextElementSibling;
-
-  while (next?.classList.contains('section')) {
-    const tabDef = getTabDefinition(next, tabDefs.length);
-    if (!tabDef) break;
-    tabDefs.push(tabDef);
-    next = next.nextElementSibling;
-  }
-
-  return tabDefs;
-}
-
-function findTabGroups(main) {
-  const sections = [...main.querySelectorAll('.section[data-tab-id]')]
-    .filter((s) => !s.closest('.tabs-wrapper'));
-  return sections.length ? [sections] : [];
-}
-
-function updateTabState(tabDefs, selectedId, tabButtons, tabPanels) {
-  tabDefs.forEach((tabDef) => {
-    const isSelected = tabDef.id === selectedId;
-    const button = tabButtons[tabDef.id];
-    const panel = tabPanels[tabDef.id];
-
-    if (button) {
-      button.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-      button.classList.toggle('is-active', isSelected);
-    }
-
-    if (panel) {
-      panel.setAttribute('aria-hidden', isSelected ? 'false' : 'true');
-    }
-  });
-}
-
-function scrollActiveTab(button, tabList) {
-  // Center the active tab, showing equal peeks of adjacent tabs
-  const listRect = tabList.getBoundingClientRect();
-  const btnRect = button.getBoundingClientRect();
-  const btnStart = btnRect.left - listRect.left + tabList.scrollLeft;
-  const offset = btnStart - (tabList.clientWidth - button.offsetWidth) / 2;
-  tabList.scrollLeft = Math.max(0, offset);
-}
-
-function buildTabsUI(tabDefs, tabsContainer, sectionId = '') {
-  const hash = window.location.hash.replace('#', '').toLowerCase();
-  const selectedId = tabDefs.find((tabDef) => tabDef.id === hash)?.id || tabDefs[0]?.id;
-
-  const tabsWrapper = document.createElement('div');
-  tabsWrapper.className = 'tabs-wrapper';
-
-  const tabList = document.createElement('div');
-  tabList.className = 'tabs-list';
-  tabList.setAttribute('role', 'tablist');
-  tabList.setAttribute('aria-orientation', 'horizontal');
-
-  const tabContent = document.createElement('div');
-  tabContent.className = 'tabs-content';
-
-  const tabButtons = {};
-  const tabPanels = {};
-
-  tabDefs.forEach((tabDef) => {
-    const baseId = `${tabDef.id}${sectionId ? `-${sectionId}` : ''}`;
-    const buttonId = `desktop-${baseId}`;
-    const panelId = `desktop-panel-${baseId}`;
-    const isSelected = tabDef.id === selectedId;
-
+    // build tab button
     const button = document.createElement('button');
     button.className = 'tabs-tab';
-    button.id = buttonId;
-    button.type = 'button';
-    button.role = 'tab';
-    button.setAttribute('aria-controls', panelId);
-    button.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-    button.classList.toggle('is-active', isSelected);
-    button.textContent = tabDef.title;
-
-    const panel = document.createElement('div');
-    panel.className = 'tab';
-    panel.id = panelId;
-    panel.role = 'tabpanel';
-    panel.setAttribute('aria-labelledby', buttonId);
-    panel.setAttribute('aria-hidden', isSelected ? 'false' : 'true');
-    panel.append(tabDef.section);
-
+    button.id = `tab-${id}`;
+    button.innerHTML = tab.innerHTML;
+    button.setAttribute('aria-controls', `tabpanel-${id}`);
+    button.setAttribute('aria-selected', !i);
+    button.setAttribute('role', 'tab');
+    button.setAttribute('type', 'button');
     button.addEventListener('click', () => {
-      updateTabState(tabDefs, tabDef.id, tabButtons, tabPanels);
-      scrollActiveTab(button, tabList);
-      window.history.pushState({}, '', `${window.location.pathname}#${tabDef.id}`);
+      block.querySelectorAll('[role=tabpanel]').forEach((panel) => {
+        panel.setAttribute('aria-hidden', true);
+      });
+      tablist.querySelectorAll('button').forEach((btn) => {
+        btn.setAttribute('aria-selected', false);
+      });
+      tabpanel.setAttribute('aria-hidden', false);
+      button.setAttribute('aria-selected', true);
     });
-
-    tabButtons[tabDef.id] = button;
-    tabPanels[tabDef.id] = panel;
-    tabList.append(button);
-    tabContent.append(panel);
+    tablist.append(button);
+    tab.remove();
   });
 
-  tabsWrapper.append(tabList, tabContent);
-
-  // Scroll the initially selected tab into view on load
-  const activeButton = tabButtons[selectedId];
-  if (activeButton) {
-    requestAnimationFrame(() => scrollActiveTab(activeButton, tabList));
-  }
-
-  return tabsWrapper;
-}
-
-function buildTabsFromSections(tabSections) {
-  if (!tabSections.length) return;
-  const first = tabSections[0];
-  const parent = first.parentNode;
-  if (!parent) return;
-
-  const tabDefs = tabSections
-    .map((section, index) => getTabDefinition(section, index))
-    .filter(Boolean);
-  if (!tabDefs.length) return;
-
-  tabDefs.forEach((def) => def.section.classList.remove('tabs'));
-
-  const tabsContainer = document.createElement('div');
-  tabsContainer.className = 'section tabs';
-  parent.insertBefore(tabsContainer, first);
-
-  const tabsUI = buildTabsUI(tabDefs, tabsContainer, first.id || '');
-  tabsContainer.append(tabsUI);
-}
-
-export default function decorate(block) {
-  const currSection = block.closest('.section');
-  if (!currSection) return;
-
-  const tabDefs = collectTabSections(currSection);
-  if (!tabDefs.length) return;
-
-  currSection.classList.add('tabs');
-  tabDefs.forEach((def) => def.section.classList.remove('tabs'));
-
-  const tabsUI = buildTabsUI(tabDefs, currSection, currSection.id || '');
-  block.replaceChildren(tabsUI);
-}
-
-export async function createTabs(main) {
-  if (!main) return;
-  if (!tabsStyleLoaded) {
-    tabsStyleLoaded = loadCSS(`${window.hlx.codeBasePath}/blocks/tabs/tabs.css`);
-  }
-  await tabsStyleLoaded;
-  const tabGroups = findTabGroups(main);
-  tabGroups.forEach((group) => buildTabsFromSections(group));
+  block.prepend(tablist);
 }

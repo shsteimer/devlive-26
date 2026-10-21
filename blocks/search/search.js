@@ -1,394 +1,275 @@
-import { readBlockConfig, toClassName } from '../../scripts/aem.js';
 import {
-  createTag,
-  fetchQueryIndexPage,
-  formatDate,
-  getContentTimestamp,
-  getArticleKeywords,
-  normalizePath,
-  parseKeywords,
-} from '../../scripts/shared.js';
+  createOptimizedPicture,
+  decorateIcons,
+} from '../../scripts/aem.js';
+import { fetchPlaceholders } from '../../scripts/placeholders.js';
 
-const PAGE_SIZE = 15;
-const FETCH_LIMIT = 500;
-const RESERVED_CONFIG_KEYS = ['view', 'keywords', 'excluded-keywords', 'searchbar'];
+const searchParams = new URLSearchParams(window.location.search);
 
-function parseFilterGroupsFromConfig(config) {
-  return Object.entries(config)
-    .filter(([key]) => !RESERVED_CONFIG_KEYS.includes(key))
-    .map(([key, value]) => {
-      const options = String(value || '')
-        .split(',')
-        .map((v) => v.trim())
-        .filter(Boolean)
-        .map((v) => ({ key: toClassName(v), label: v, match: v.toLowerCase() }));
-      if (!options.length) return null;
-      const label = key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, ' ');
-      return { key, label, options };
-    })
-    .filter(Boolean);
-}
-
-function getGroupMatches(row, group) {
-  if (group.key === 'type') {
-    const template = String(row.template || '').toLowerCase();
-    return group.options
-      .filter((opt) => template === opt.match)
-      .map((opt) => opt.key);
+function findNextHeading(el) {
+  let preceedingEl = el.parentElement.previousElement || el.parentElement.parentElement;
+  let h = 'H2';
+  while (preceedingEl) {
+    const lastHeading = [...preceedingEl.querySelectorAll('h1, h2, h3, h4, h5, h6')].pop();
+    if (lastHeading) {
+      const level = parseInt(lastHeading.nodeName[1], 10);
+      h = level < 6 ? `H${level + 1}` : 'H6';
+      preceedingEl = false;
+    } else {
+      preceedingEl = preceedingEl.previousElement || preceedingEl.parentElement;
+    }
   }
-  const rowKeywords = parseKeywords(getArticleKeywords(row)).map((k) => k.toLowerCase());
-  return group.options
-    .filter((opt) => rowKeywords.some((rk) => rk === opt.match || rk.includes(opt.match)))
-    .map((opt) => opt.key);
+  return h;
 }
 
-function rowMatchesFilterGroups(row, selectedByGroup, filterGroups) {
-  return filterGroups.every((group) => {
-    const selected = selectedByGroup.get(group.key) || [];
-    if (!selected.length) return true;
-    const values = getGroupMatches(row, group);
-    return selected.some((v) => values.includes(v));
-  });
-}
+function highlightTextElements(terms, elements) {
+  elements.forEach((element) => {
+    if (!element || !element.textContent) return;
 
-function getSelectedByGroupFromBlock(block, filterGroups) {
-  const map = new Map();
-  filterGroups.forEach((group) => {
-    const inputs = block.querySelectorAll(`input[data-group="${group.key}"]:checked`);
-    map.set(group.key, [...inputs].map((i) => i.value));
-  });
-  return map;
-}
-
-function matchesKeywords(row, keywords) {
-  if (!keywords.length) return true;
-  const rowKeywords = parseKeywords(getArticleKeywords(row));
-  return keywords.some((k) => rowKeywords.some((rk) => rk === k || rk.includes(k)));
-}
-
-function matchesExcluded(row, excluded) {
-  if (!excluded.length) return false;
-  const rowKeywords = parseKeywords(getArticleKeywords(row));
-  return excluded.some((k) => rowKeywords.some((rk) => rk === k || rk.includes(k)));
-}
-
-function matchesQuery(row, query) {
-  if (!query) return true;
-  const text = [row.title, row.description, row.path, getArticleKeywords(row)]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-  return terms.every((term) => text.includes(term));
-}
-
-function isMatch(row, keywords, excluded) {
-  return (
-    row?.path
-    && row?.title
-    && matchesKeywords(row, keywords)
-    && !matchesExcluded(row, excluded)
-  );
-}
-
-async function fetchMatchingRows(state, keywords, excluded, query, neededCount) {
-  if (state.rows.length >= neededCount || !state.hasMore) return;
-  const batch = await fetchQueryIndexPage(state.offset, FETCH_LIMIT);
-  state.offset += batch.length;
-  state.hasMore = batch.length === FETCH_LIMIT;
-  batch
-    .filter((row) => isMatch(row, keywords, excluded))
-    .forEach((row) => {
-      if (!state.pathSet.has(row.path)) {
-        state.pathSet.add(row.path);
-        state.rows.push(row);
+    const matches = [];
+    const { textContent } = element;
+    terms.forEach((term) => {
+      let start = 0;
+      let offset = textContent.toLowerCase().indexOf(term.toLowerCase(), start);
+      while (offset >= 0) {
+        matches.push({ offset, term: textContent.substring(offset, offset + term.length) });
+        start = offset + term.length;
+        offset = textContent.toLowerCase().indexOf(term.toLowerCase(), start);
       }
     });
-  await fetchMatchingRows(state, keywords, excluded, query, neededCount);
+
+    if (!matches.length) {
+      return;
+    }
+
+    matches.sort((a, b) => a.offset - b.offset);
+    let currentIndex = 0;
+    const fragment = matches.reduce((acc, { offset, term }) => {
+      if (offset < currentIndex) return acc;
+      const textBefore = textContent.substring(currentIndex, offset);
+      if (textBefore) {
+        acc.appendChild(document.createTextNode(textBefore));
+      }
+      const markedTerm = document.createElement('mark');
+      markedTerm.textContent = term;
+      acc.appendChild(markedTerm);
+      currentIndex = offset + term.length;
+      return acc;
+    }, document.createDocumentFragment());
+    const textAfter = textContent.substring(currentIndex);
+    if (textAfter) {
+      fragment.appendChild(document.createTextNode(textAfter));
+    }
+    element.innerHTML = '';
+    element.appendChild(fragment);
+  });
 }
 
-function buildResultItem(row, view, filterGroups) {
-  const href = normalizePath(row.path);
-  const link = createTag('a', { href, class: 'search-result-link' });
-  if (view === 'cards') {
-    link.append(createTag('div', { class: 'search-result-strip' }));
+export async function fetchData(source) {
+  const response = await fetch(source);
+  if (!response.ok) {
+     
+    console.error('error loading API response', response);
+    return null;
   }
-  const content = createTag('div', { class: 'search-result-content' });
-  content.append(createTag('h3', {}, row.title || href));
-  if (row.description) {
-    content.append(createTag('p', { class: 'search-result-description' }, row.description));
+
+  const json = await response.json();
+  if (!json) {
+     
+    console.error('empty API response', source);
+    return null;
   }
-  const author = row.author || row.authors || row.byline || '';
-  const date = row.date || row.publisheddate || row.lastModified;
-  if (author || date) {
-    const meta = createTag('p', { class: 'search-result-meta' });
-    if (author) meta.append(createTag('span', { class: 'search-result-author' }, String(author)));
-    if (author && date) meta.append(createTag('span', { class: 'search-result-meta-sep' }, ' • '));
-    if (date) meta.append(createTag('span', { class: 'search-result-date' }, formatDate(date)));
-    content.append(meta);
+
+  return json.data;
+}
+
+function renderResult(result, searchTerms, titleTag) {
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+  a.href = result.path;
+  if (result.image) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'search-result-image';
+    const pic = createOptimizedPicture(result.image, '', false, [{ width: '375' }]);
+    wrapper.append(pic);
+    a.append(wrapper);
   }
-  link.append(content);
-  const li = createTag('li', { class: `search-result ${view === 'cards' ? 'is-card' : 'is-list'}` }, link);
-  li.dataset.time = String(getContentTimestamp(row));
-  if (filterGroups?.length) {
-    filterGroups.forEach((group) => {
-      const values = getGroupMatches(row, group);
-      li.setAttribute(`data-filter-${group.key}`, values.join(','));
-    });
+  if (result.title) {
+    const title = document.createElement(titleTag);
+    title.className = 'search-result-title';
+    const link = document.createElement('a');
+    link.href = result.path;
+    link.textContent = result.title;
+    highlightTextElements(searchTerms, [link]);
+    title.append(link);
+    a.append(title);
   }
+  if (result.description) {
+    const description = document.createElement('p');
+    description.textContent = result.description;
+    highlightTextElements(searchTerms, [description]);
+    a.append(description);
+  }
+  li.append(a);
   return li;
 }
 
-function sortByDate(rows, order) {
-  const out = [...rows];
-  out.sort((a, b) => {
-    const ta = getContentTimestamp(a);
-    const tb = getContentTimestamp(b);
-    return order === 'oldest' ? ta - tb : tb - ta;
-  });
-  return out;
+function clearSearchResults(block) {
+  const searchResults = block.querySelector('.search-results');
+  searchResults.innerHTML = '';
 }
 
-function buildFilterSidebar(filterGroups, listId, idPrefix, sortSelectId) {
-  const panelId = `${idPrefix}-filters-panel`;
-  const aside = createTag('aside', {
-    class: 'search-filters',
-    role: 'region',
-    'aria-label': 'Filter results',
-  });
-
-  const toggle = createTag('button', {
-    type: 'button',
-    class: 'search-filters-toggle',
-    'aria-expanded': 'false',
-    'aria-controls': panelId,
-  }, 'Filters');
-  aside.append(toggle);
-
-  const panel = createTag('div', {
-    id: panelId,
-    class: 'search-filters-panel',
-  });
-
-  const sortWrap = createTag('div', { class: 'search-filters-sort' });
-  sortWrap.append(createTag('label', { for: sortSelectId }, 'Sort by'));
-  const select = createTag('select', { id: sortSelectId, name: 'search-sort', 'aria-controls': listId });
-  select.append(
-    createTag('option', { value: 'newest' }, 'Newest'),
-    createTag('option', { value: 'oldest' }, 'Oldest'),
-  );
-  sortWrap.append(select);
-  panel.append(sortWrap);
-
-  const list = createTag('div', { class: 'search-filter-list' });
-  filterGroups.forEach((group) => {
-    const groupEl = createTag('div', { class: 'search-filter-group' });
-    groupEl.append(createTag('p', { class: 'search-filter-group-title' }, group.label));
-    group.options.forEach((option) => {
-      const id = `${idPrefix}-${group.key}-${option.key}`;
-      const input = createTag('input', {
-        id,
-        type: 'checkbox',
-        name: `search-filter-${group.key}`,
-        'data-group': group.key,
-        value: option.key,
-        'aria-controls': listId,
-      });
-      const labelEl = createTag('label', { for: id }, `${option.label} (0)`);
-      groupEl.append(createTag('div', { class: 'search-filter-item' }, [input, labelEl]));
-    });
-    list.append(groupEl);
-  });
-  panel.append(list);
-  aside.append(panel);
-
-  toggle.addEventListener('click', () => {
-    const expanded = aside.classList.toggle('is-expanded');
-    toggle.setAttribute('aria-expanded', String(expanded));
-  });
-
-  return { aside, sortSelect: select };
+function clearSearch(block) {
+  clearSearchResults(block);
+  if (window.history.replaceState) {
+    const url = new URL(window.location.href);
+    url.search = '';
+    searchParams.delete('q');
+    window.history.replaceState({}, '', url.toString());
+  }
 }
 
-function updateFilterCounts(block, filterGroups, rows) {
-  const groupCounts = new Map(
-    filterGroups.map((g) => [g.key, new Map(g.options.map((o) => [o.key, 0]))]),
-  );
-  rows.forEach((row) => {
-    filterGroups.forEach((group) => {
-      getGroupMatches(row, group).forEach((value) => {
-        const m = groupCounts.get(group.key);
-        if (m) m.set(value, (m.get(value) || 0) + 1);
-      });
+async function renderResults(block, config, filteredData, searchTerms) {
+  clearSearchResults(block);
+  const searchResults = block.querySelector('.search-results');
+  const headingTag = searchResults.dataset.h;
+
+  if (filteredData.length) {
+    searchResults.classList.remove('no-results');
+    filteredData.forEach((result) => {
+      const li = renderResult(result, searchTerms, headingTag);
+      searchResults.append(li);
     });
+  } else {
+    const noResultsMessage = document.createElement('li');
+    searchResults.classList.add('no-results');
+    noResultsMessage.textContent = config.placeholders.searchNoResults || 'No results found.';
+    searchResults.append(noResultsMessage);
+  }
+}
+
+function compareFound(hit1, hit2) {
+  return hit1.minIdx - hit2.minIdx;
+}
+
+function filterData(searchTerms, data) {
+  const foundInHeader = [];
+  const foundInMeta = [];
+
+  data.forEach((result) => {
+    let minIdx = -1;
+
+    searchTerms.forEach((term) => {
+      const idx = (result.header || result.title).toLowerCase().indexOf(term);
+      if (idx < 0) return;
+      if (minIdx < idx) minIdx = idx;
+    });
+
+    if (minIdx >= 0) {
+      foundInHeader.push({ minIdx, result });
+      return;
+    }
+
+    const metaContents = `${result.title} ${result.description} ${result.path.split('/').pop()}`.toLowerCase();
+    searchTerms.forEach((term) => {
+      const idx = metaContents.indexOf(term);
+      if (idx < 0) return;
+      if (minIdx < idx) minIdx = idx;
+    });
+
+    if (minIdx >= 0) {
+      foundInMeta.push({ minIdx, result });
+    }
   });
-  const labelMap = new Map(
-    filterGroups.map((g) => [g.key, new Map(g.options.map((o) => [o.key, o.label]))]),
+
+  return [
+    ...foundInHeader.sort(compareFound),
+    ...foundInMeta.sort(compareFound),
+  ].map((item) => item.result);
+}
+
+async function handleSearch(e, block, config) {
+  const searchValue = e.target.value;
+  searchParams.set('q', searchValue);
+  if (window.history.replaceState) {
+    const url = new URL(window.location.href);
+    url.search = searchParams.toString();
+    window.history.replaceState({}, '', url.toString());
+  }
+
+  if (searchValue.length < 3) {
+    clearSearch(block);
+    return;
+  }
+  const searchTerms = searchValue.toLowerCase().split(/\s+/).filter((term) => !!term);
+
+  const data = await fetchData(config.source);
+  const filteredData = filterData(searchTerms, data);
+  await renderResults(block, config, filteredData, searchTerms);
+}
+
+function searchResultsContainer(block) {
+  const results = document.createElement('ul');
+  results.className = 'search-results';
+  results.dataset.h = findNextHeading(block);
+
+  // add ARIA live region for screen reader announcements
+  results.setAttribute('role', 'status');
+  results.setAttribute('aria-live', 'polite');
+  results.setAttribute('aria-atomic', true);
+
+  return results;
+}
+
+function searchInput(block, config) {
+  const input = document.createElement('input');
+  input.setAttribute('type', 'search');
+  input.className = 'search-input';
+
+  const searchPlaceholder = config.placeholders.searchPlaceholder || 'Search...';
+  input.placeholder = searchPlaceholder;
+  input.setAttribute('aria-label', searchPlaceholder);
+
+  input.addEventListener('input', (e) => {
+    handleSearch(e, block, config);
+  });
+
+  input.addEventListener('keyup', (e) => { if (e.code === 'Escape') { clearSearch(block); } });
+
+  return input;
+}
+
+function searchIcon() {
+  const icon = document.createElement('span');
+  icon.classList.add('icon', 'icon-search');
+  return icon;
+}
+
+function searchBox(block, config) {
+  const box = document.createElement('div');
+  box.classList.add('search-box');
+  box.append(
+    searchIcon(),
+    searchInput(block, config),
   );
-  block.querySelectorAll('input[data-group]').forEach((input) => {
-    const groupKey = input.dataset.group;
-    const count = groupCounts.get(groupKey)?.get(input.value) || 0;
-    input.disabled = count === 0;
-    const label = block.querySelector(`label[for="${input.id}"]`);
-    if (label) label.textContent = `${labelMap.get(groupKey)?.get(input.value) || input.value} (${count})`;
-  });
+
+  return box;
 }
 
 export default async function decorate(block) {
-  const config = readBlockConfig(block);
-  const viewVal = Array.isArray(config.view) ? config.view[0] : config.view;
-  const view = String(viewVal || 'cards').trim().toLowerCase() === 'list' ? 'list' : 'cards';
-  const keywords = parseKeywords(config.keywords || '');
-  const excluded = parseKeywords(config['excluded-keywords'] || '');
-  const searchBarEnabled = String(config.searchbar || '').trim().toLowerCase() === 'enabled';
-  const initialQuery = (new URLSearchParams(window.location.search).get('q') || '').trim();
-  const filterGroups = parseFilterGroupsFromConfig(config);
+  const placeholders = await fetchPlaceholders();
+  const source = block.querySelector('a[href]') ? block.querySelector('a[href]').href : '/query-index.json';
+  block.innerHTML = '';
+  block.append(
+    searchBox(block, { source, placeholders }),
+    searchResultsContainer(block),
+  );
 
-  const state = {
-    offset: 0,
-    hasMore: true,
-    rows: [],
-    pathSet: new Set(),
-    displayCount: PAGE_SIZE,
-    query: initialQuery,
-    sort: 'newest',
-    loading: false,
-  };
-
-  block.textContent = '';
-  const listId = `search-list-${Date.now()}`;
-  const idPrefix = `search-${Date.now()}`;
-  const sortSelectId = `search-sort-${Date.now()}`;
-
-  const controls = createTag('div', { class: 'search-controls' });
-  const resultsWrap = createTag('div', { class: 'search-results-wrap' });
-  const status = createTag('p', { class: 'search-status', role: 'status', 'aria-live': 'polite' });
-  const list = createTag('ul', { class: `search-results search-results-${view}`, id: listId });
-  const empty = createTag('p', { class: 'search-empty', hidden: true }, 'No matching results.');
-  const loadMore = createTag('button', {
-    type: 'button',
-    class: 'search-load-more search-load-more-hidden btn btn-primary',
-  }, 'Load More');
-  resultsWrap.append(status, list, loadMore, empty);
-
-  async function render() {
-    state.loading = true;
-    loadMore.disabled = true;
-    loadMore.textContent = 'Loading...';
-
-    try {
-      const needed = state.displayCount;
-      await fetchMatchingRows(state, keywords, excluded, state.query, needed);
-
-      const sortBy = block.querySelector('select[name="search-sort"]')?.value || state.sort;
-      state.sort = sortBy;
-
-      let filtered = state.rows.filter((row) => matchesQuery(row, state.query));
-      if (filterGroups.length > 0) {
-        const selectedByGroup = getSelectedByGroupFromBlock(block, filterGroups);
-        const matchesFilter = (row) => rowMatchesFilterGroups(row, selectedByGroup, filterGroups);
-        filtered = filtered.filter(matchesFilter);
-        const queryRows = state.rows.filter((row) => matchesQuery(row, state.query));
-        updateFilterCounts(block, filterGroups, queryRows);
-      }
-
-      const sorted = sortByDate(filtered, state.sort);
-      const visible = sorted.slice(0, state.displayCount);
-
-      list.textContent = '';
-      visible.forEach((row) => list.append(buildResultItem(row, view, filterGroups)));
-
-      empty.hidden = visible.length > 0;
-
-      if (state.query) {
-        status.hidden = false;
-        const n = visible.length;
-        const total = filtered.length;
-        status.textContent = `Showing ${n} of ${total} results for "${state.query}".`;
-      } else if (filterGroups.length > 0) {
-        const selectedCount = filterGroups.reduce((sum, g) => {
-          const selected = getSelectedByGroupFromBlock(block, filterGroups).get(g.key) || [];
-          return sum + selected.length;
-        }, 0);
-        status.hidden = false;
-        const filterLabel = selectedCount > 1 ? 'filters' : 'filter';
-        status.textContent = selectedCount
-          ? `Showing ${visible.length} of ${filtered.length} for ${selectedCount} selected ${filterLabel}.`
-          : `Showing all ${filtered.length} results.`;
-      } else {
-        status.hidden = true;
-        status.textContent = '';
-      }
-
-      const hasMoreThanOnePage = filtered.length > PAGE_SIZE;
-      const hasMoreToShow = visible.length < filtered.length;
-      const mayHaveMoreToFetch = state.hasMore && visible.length >= PAGE_SIZE;
-      const showLoadMore = hasMoreThanOnePage && (hasMoreToShow || mayHaveMoreToFetch);
-      loadMore.classList.toggle('search-load-more-hidden', !showLoadMore);
-    } finally {
-      loadMore.disabled = false;
-      loadMore.textContent = 'Load More';
-      state.loading = false;
-    }
+  if (searchParams.get('q')) {
+    const input = block.querySelector('input');
+    input.value = searchParams.get('q');
+    input.dispatchEvent(new Event('input'));
   }
 
-  if (searchBarEnabled) {
-    const form = createTag('form', { class: 'search-query-form', role: 'search', 'aria-label': 'Search content' });
-    const input = createTag('input', {
-      type: 'search',
-      name: 'q',
-      value: state.query,
-      placeholder: 'Search',
-      'aria-label': 'Search',
-    });
-    form.append(input, createTag('button', { type: 'submit' }, 'Search'));
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      state.query = input.value.trim();
-      state.offset = 0;
-      state.hasMore = true;
-      state.rows = [];
-      state.pathSet = new Set();
-      state.displayCount = PAGE_SIZE;
-      const url = new URL(window.location.href);
-      if (state.query) url.searchParams.set('q', state.query);
-      else url.searchParams.delete('q');
-      window.history.replaceState({}, '', url);
-      await render();
-    });
-    controls.append(form);
-  }
-
-  if (filterGroups.length > 0) {
-    const { aside, sortSelect } = buildFilterSidebar(filterGroups, listId, idPrefix, sortSelectId);
-    sortSelect.addEventListener('change', () => {
-      state.sort = sortSelect.value;
-      render();
-    });
-    aside.addEventListener('change', () => render());
-    const layout = createTag('div', { class: 'search-layout' });
-    layout.append(aside, resultsWrap);
-    block.append(controls, layout);
-  } else {
-    const sortLabel = createTag('label', { class: 'search-sort-label', for: sortSelectId }, 'Sort');
-    const sortSelect = createTag('select', { id: sortSelectId, name: 'search-sort' }, [
-      createTag('option', { value: 'newest' }, 'Newest'),
-      createTag('option', { value: 'oldest' }, 'Oldest'),
-    ]);
-    sortLabel.append(sortSelect);
-    sortSelect.addEventListener('change', () => {
-      state.sort = sortSelect.value;
-      render();
-    });
-    controls.append(sortLabel);
-    block.append(controls, resultsWrap);
-  }
-
-  loadMore.addEventListener('click', async () => {
-    if (state.loading) return;
-    state.displayCount += PAGE_SIZE;
-    await render();
-  });
-
-  await render();
+  decorateIcons(block);
 }

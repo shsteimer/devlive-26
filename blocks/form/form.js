@@ -1,4 +1,4 @@
-import { toCamelCase, toClassName, buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
+import { toCamelCase, toClassName } from '../../scripts/aem.js';
 
 /**
  * Creates an HTML element with an optional class name
@@ -460,113 +460,31 @@ function generatePayload(form) {
 }
 
 /**
- * Normalizes confirmation path to a same-origin path for fragment loading.
- * @param {string} raw - Raw path or URL from form config
- * @returns {string|null} Normalized path (e.g. /thank-you) or null if invalid
- */
-function normalizeConfirmationPath(raw) {
-  if (typeof raw !== 'string') return null;
-  let path = raw.trim();
-  if (!path) return null;
-
-  try {
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      const url = new URL(path);
-      if (url.origin !== window.location.origin) return null;
-      path = url.pathname;
-    }
-  } catch {
-    return null;
-  }
-
-  if (!path.startsWith('/') || path.startsWith('//')) return null;
-  return path;
-}
-
-/**
- * Replaces the form block with thank you content from the confirmation path.
- * Uses the fragment block to load and decorate the content. Only replaces on success;
- * the form stays visible if the fragment fails to load.
- * @param {HTMLFormElement} form - Form element
- * @param {string} confirmationPath - Path to thank you page (e.g. /thank-you)
- * @returns {Promise<boolean>} True if replacement succeeded
- */
-async function replaceWithThankYou(form, confirmationPath) {
-  const path = normalizeConfirmationPath(confirmationPath);
-  if (!path) return false;
-
-  const block = form.closest('.block');
-  if (!block) return false;
-
-  const link = document.createElement('a');
-  link.href = path;
-
-  const fragmentBlock = buildBlock('fragment', [[link]]);
-  const tmp = document.createElement('div');
-  tmp.setAttribute('hidden', '');
-  tmp.appendChild(fragmentBlock);
-  block.parentElement.appendChild(tmp);
-
-  try {
-    decorateBlock(fragmentBlock);
-    await loadBlock(fragmentBlock);
-
-    const hasContent = fragmentBlock.querySelector('.section');
-    if (hasContent) {
-      block.replaceChildren(...fragmentBlock.childNodes);
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error('Failed to load thank you fragment:', path, error);
-    return false;
-  } finally {
-    tmp.remove();
-  }
-}
-
-/**
  * Handles form submission
  * @param {HTMLFormElement} form - Form element to submit
  * @returns {Promise<void>}
  */
 async function handleSubmit(form) {
-  const status = form.querySelector('.form-status');
-  const setStatus = (msg) => { if (status) status.textContent = msg; };
-
   try {
     const payload = generatePayload(form);
-    const body = { data: payload };
-
     toggleForm(form);
-    setStatus('Sending...');
-
     const response = await fetch(form.dataset.action, {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify({ data: payload }),
       headers: {
         'Content-Type': 'application/json',
       },
     });
-
     if (response.ok) {
       if (form.dataset.confirmation) {
-        const replaced = await replaceWithThankYou(form, form.dataset.confirmation);
-        if (!replaced) {
-          setStatus('Thanks! Your message has been sent.');
-          form.reset();
-        }
-      } else {
-        setStatus('Thanks! Your message has been sent.');
-        form.reset();
+        window.location.href = form.dataset.confirmation;
       }
     } else {
       const error = await response.text();
       throw new Error(error);
     }
   } catch (error) {
-    setStatus('Unable to submit right now. Please try again.');
-
+     
     console.error(error);
   } finally {
     toggleForm(form, false);
@@ -713,11 +631,6 @@ function buildForm(fields, submit) {
     form.append(buttonWrapper);
   }
 
-  const status = createElement('p', 'form-status');
-  status.setAttribute('role', 'status');
-  status.setAttribute('aria-live', 'polite');
-  form.append(status);
-
   enableConditionals(form);
 
   if (submit) enableSubmission(form, submit, fields);
@@ -739,10 +652,8 @@ export default function decorate(block) {
           try {
             const resp = await fetch(new URL(source, window.location.origin));
             if (!resp.ok) throw new Error(`${resp.status}: ${resp.statusText}`);
-            const json = await resp.json();
-            const raw = json.data ?? json.fields ?? json;
-            const data = Array.isArray(raw) ? raw : (raw?.fields && Array.isArray(raw.fields) ? raw.fields : null);
-            if (!data || !Array.isArray(data)) throw new Error(`No form fields at ${source}`);
+            const { data } = await resp.json();
+            if (!data) throw new Error(`No form fields at ${source}`);
             const form = buildForm(data, submit);
             block.replaceChildren(form);
             block.removeAttribute('style');

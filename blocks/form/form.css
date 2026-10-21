@@ -1,29 +1,3 @@
-/* Contact-style form layout (inspired by contact-us pattern) */
-main .form-container {
-  max-width: min(var(--grid-container-width), 860px);
-  width: 100%;
-  margin: 0 auto;
-  padding: var(--space-l) var(--content-padding-inline);
-  box-sizing: border-box;
-}
-
-main .form-container .form-wrapper {
-  margin-top: var(--space-m);
-}
-
-.form form,
-main .form form {
-  display: grid;
-  gap: var(--space-s);
-  border: var(--border-heritage);
-  border-radius: var(--border-radius-heritage);
-  padding: var(--space-l);
-  background: light-dark(var(--color-parchment), var(--color-card-dark));
-  color: inherit;
-  min-width: 0;
-  max-width: 100%;
-}
-
 .form [aria-hidden='true'] {
   display: none;
 }
@@ -43,14 +17,12 @@ main .form form {
 .form select {
   scroll-margin: 1em;
   width: 100%;
-  min-width: 0;
-  border: 1px solid light-dark(rgb(26 26 26 / 20%), rgb(245 242 237 / 20%));
-  border-radius: 8px;
-  padding: 12px 14px;
-  background: light-dark(var(--color-light), rgb(6 13 13 / 60%));
-  color: inherit;
+  border: 1px solid var(--dark-color);
+  border-radius: 4px;
+  padding: 0.5em 0.75em;
+  background-color: var(--background-color);
+  color: var(--text-color);
   font-size: var(--body-font-size-s);
-  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .form textarea {
@@ -67,28 +39,39 @@ main .form form {
 
 .form input:hover,
 .form textarea:hover,
-.form select:hover {
-  border-color: light-dark(var(--color-rust), var(--color-rust-bright));
+.form select:hover,
+.form button:hover {
+  border-color: var(--link-color);
 }
 
 .form input:focus,
 .form textarea:focus,
-.form select:focus {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
-  border-color: var(--color-gold);
-  box-shadow: 0 0 0 4px rgb(197 160 89 / 12%);
+.form select:focus,
+.form button:focus {
+  outline-offset: 4px;
 }
 
 .form input:disabled,
+.form input:hover:disabled,
+.form input:focus:disabled,
 .form textarea:disabled,
+.form textarea:hover:disabled,
+.form textarea:focus:disabled,
 .form select:disabled,
+.form select:hover:disabled,
+.form select:focus:disabled,
 .form input[readonly],
 .form textarea[readonly],
 .form select[readonly] {
-  opacity: 0.6;
-  background: transparent;
-  color: inherit;
+  border-color: #d1d1d1;
+  background-color: var(--light-color);
+  color: var(--dark-color);
+}
+
+.form input[readonly]:focus,
+.form textarea[readonly]:focus,
+.form select[readonly]:focus {
+  outline: 0;
 }
 
 .form input[type='checkbox'],
@@ -96,27 +79,25 @@ main .form form {
   width: unset;
 }
 
-.form .form-field {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.form .form-field > label:first-child,
-.form .form-field > legend {
-  font-size: var(--body-font-size-s);
-  font-weight: 600;
+.form label,
+.form legend {
+  display: block;
 }
 
 .form label[data-required]::after,
 .form legend[data-required]::after {
   content: '*';
   margin-left: 0.25ch;
-  color: inherit;
+  color: firebrick;
+}
+
+.form .form-field > label:first-child,
+.form .form-field > legend {
+  font-weight: bold;
 }
 
 .form .form-field + .form-field {
-  margin-top: 0;
+  margin-top: 1em;
 }
 
 .form .form-field.checkbox-field label,
@@ -141,13 +122,12 @@ main .form form {
   cursor: pointer;
 }
 
+.form .form-field.checkbox-field label input:disabled,
+.form .form-field.radio-field label input:disabled {
+  cursor: default;
+}
+
 @media (width >= 600px) {
-  .form form,
-  main .form form {
-    padding: var(--space-xl);
-  }
-
-
   .form .form-field.checkbox-field,
   .form .form-field.radio-field {
     display: flex;
@@ -156,7 +136,7 @@ main .form form {
   }
 }
 
-/* Toggle field */
+/* custom toggle field */
 .form .form-field.toggle-field label {
   position: relative;
   display: grid;
@@ -166,6 +146,7 @@ main .form form {
   min-height: 44px;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .form .form-field.toggle-field label input {
   width: 2em;
   opacity: 0;
@@ -174,13 +155,12 @@ main .form form {
 
 .form .form-field.toggle-field label span {
   position: relative;
-  width: calc(2em + 2px);
-  height: calc(1em + 2px);
+  width: calc(2em + (2 * 1px));
+  height: calc(1em + (2 * 1px));
   border-radius: 1em;
-  border: 1px solid currentcolor;
-  background: currentcolor;
-  opacity: 0.4;
-  transition: opacity 0.2s;
+  border: 1px solid var(--dark-color);
+  background-color: var(--dark-color);
+  transition: background-color 0.2s;
   cursor: pointer;
 }
 
@@ -193,81 +173,65 @@ main .form form {
   width: 1em;
   height: 1em;
   border-radius: 50%;
-  background: inherit;
+  background-color: var(--background-color);
   transition: left 0.2s;
 }
 
 .form .form-field.toggle-field label input:checked + span {
-  opacity: 1;
+  background-color: var(--link-color);
 }
 
 .form .form-field.toggle-field label input:checked + span::after {
   left: calc(100% - 1em);
 }
 
+.form .form-field.toggle-field label input:disabled + span {
+  border-color: #d1d1d1;
+  background-color: #d1d1d1;
+  cursor: default;
+}
+
+.form .form-field.toggle-field label input:disabled + span::after {
+  background-color: var(--light-color);
+}
+
 .form .field-help-text {
   margin-top: 0.2em;
-  color: inherit;
-  opacity: 0.8;
+  color: var(--dark-color);
   font-size: var(--body-font-size-xs);
 }
 
-.form .form-status {
-  margin: var(--space-s) 0 0;
-  font-size: var(--body-font-size-s);
-  color: inherit;
-  opacity: 0.9;
-}
-
-/* Buttons – primary submit, secondary reset */
 .form .button-wrapper {
-  margin-top: var(--space-s);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-s);
+  margin-top: 1em;
 }
 
 .form .button-wrapper button {
-  width: auto;
-  min-width: fit-content;
-}
-
-.form .button-wrapper button.button {
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.form .button-wrapper button.button:not(.secondary) {
-  border: 1px solid light-dark(var(--color-rust), var(--color-rust-bright));
-  background: light-dark(var(--color-rust), var(--color-rust-bright));
-  color: var(--color-parchment);
+  width: 100%;
 }
 
 .form .button-wrapper button.button:disabled,
 .form .button-wrapper button.button:hover:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  border-color: var(--dark-color);
+  background-color: var(--dark-color);
+  color: var(--background-color);
+  cursor: progress;
 }
 
-.form .button-wrapper button.button:not(.secondary):hover {
-  background: var(--color-gold);
-  border-color: var(--color-gold);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px light-dark(rgb(161 79 43 / 25%), rgb(197 160 89 / 25%));
+.form .button-wrapper button.button.secondary:disabled,
+.form .button-wrapper button.button.secondary:hover:disabled {
+  border-color: var(--dark-color);
+  background-color: var(--light-color);
+  color: var(--dark-color);
 }
 
-.form .button-wrapper button.button.secondary {
-  border: 1px solid light-dark(var(--color-rust), var(--color-rust-bright));
-  background: transparent;
-  color: light-dark(var(--color-rust), var(--color-rust-bright));
-}
+@media (width >= 600px) {
+  .form .button-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1ch;
+  }
 
-.form .button-wrapper button.button.secondary:hover {
-  border-color: var(--color-gold);
-  color: var(--color-gold);
-  transform: translateY(-2px);
+  .form .button-wrapper button {
+    width: max-content;
+  }
 }

@@ -1,78 +1,84 @@
-/* Modal – opens fragment links in a dialog */
-
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1400;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-s);
+body.modal-open {
+  overflow: hidden;
 }
 
-.modal[hidden] {
-  display: none;
+.modal dialog::backdrop {
+  background-color: rgb(19 19 19 / 75%);
 }
 
-.modal .modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: light-dark(rgb(26 26 26 / 40%), rgb(0 0 0 / 55%));
-  backdrop-filter: blur(6px);
-}
-
-.modal .modal-dialog {
-  position: relative;
-  width: min(920px, calc(100vw - var(--space-xl)));
-  max-height: calc(100vh - var(--space-xl));
-  margin: 0;
-  overflow: auto;
-  border-radius: var(--border-radius-heritage);
-  border: var(--border-heritage);
-  background: light-dark(var(--color-light), var(--color-card-dark));
-  box-shadow: var(--shadow-lift-l);
-  padding: var(--space-xl);
-}
-
-.modal .modal-close {
-  position: sticky;
-  top: 0;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid light-dark(var(--color-gray-200), rgb(245 242 237 / 15%));
-  border-radius: 999px;
-  background: light-dark(var(--color-parchment), var(--color-obsidian));
-  color: inherit;
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color 0.25s, transform 0.25s, border-color 0.25s;
-}
-
-.modal .modal-close:hover {
-  background-color: light-dark(var(--color-gray-100), var(--color-gray-800));
-  border-color: var(--color-gold);
-  transform: scale(1.08);
-}
-
-.modal .modal-content .modal-main {
-  display: block;
-  min-height: 0;
-  max-width: 100%;
+.modal dialog {
+  overscroll-behavior: none;
+  overflow-y: hidden;
+  width: calc(100vw - 48px);
+  max-width: 900px;
+  max-height: calc(100dvh - (2 * var(--header-height)));
   padding: 0;
+  border: 1px solid var(--dark-color);
 }
 
-.modal .modal-content .modal-main > div,
-.modal .modal-content .modal-main div[data-status] {
-  display: block;
+.modal dialog .modal-content {
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  width: 100%;
+  max-height: calc(100dvh - (2 * var(--header-height)) - 48px);
+  padding: 24px;
+  padding-top: 0;
+  margin-top: 44px;
 }
 
-@media (width >= 600px) {
-  .modal {
-    padding: var(--space-m);
+@media (width >= 900px) {
+  .modal dialog {
+    width: calc(100vw - 64px);
   }
+  
+  .modal dialog .modal-content {
+    max-height: calc(100dvh - (2 * var(--header-height)) - 64px);
+    padding: 32px;
+    padding-top: 0;
+  }
+}
+
+.modal .close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background-color: transparent;
+  color: var(--text-color);
+  line-height: 0;
+}
+
+.modal .close-button .icon.icon-close {
+  content: '';
+  width: 24px;
+  height: 24px;
+}
+
+.modal .close-button .icon.icon-close::before,
+.modal .close-button .icon.icon-close::after {
+  content: '';
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background-color: currentcolor;
+}
+
+.modal .close-button .icon.icon-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg)
+}
+
+.modal dialog .section {
+  padding: 0;
 }
