@@ -17,6 +17,21 @@ export function splitList(cell) {
   return (cell?.textContent || '').split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+const CURRENCY_SYMBOLS = {
+  $: 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY',
+};
+
+export function parsePrice(text = '') {
+  const code = text.match(/\b[A-Z]{3}\b/g)?.find((c) => Intl.supportedValuesOf('currency').includes(c));
+  const symbol = Object.keys(CURRENCY_SYMBOLS).find((s) => text.includes(s));
+  const priceCurrency = code || CURRENCY_SYMBOLS[symbol];
+  const amount = text.match(/\d[\d.,\s]*/)?.[0].replace(/\s/g, '').replace(/[.,]$/, '');
+  if (!priceCurrency || !amount) return null;
+  const decimal = amount.match(/[.,](\d{1,2})$/);
+  const whole = (decimal ? amount.slice(0, decimal.index) : amount).replace(/[.,]/g, '');
+  return { price: decimal ? `${whole}.${decimal[1]}` : whole, priceCurrency };
+}
+
 function buildGallery(cell) {
   const gallery = document.createElement('div');
   gallery.className = 'product-detail-gallery';
@@ -71,6 +86,7 @@ function buildOptions(name, label, values, swatch = false) {
 }
 
 export function addSchema(fields, image) {
+  const price = parsePrice(fields.price?.textContent.trim());
   const script = document.createElement('script');
   script.type = 'application/ld+json';
   script.textContent = JSON.stringify({
@@ -81,6 +97,7 @@ export function addSchema(fields, image) {
     image: image?.currentSrc || image?.src,
     category: fields.category?.textContent.trim(),
     brand: { '@type': 'Brand', name: getMetadata('og:site_name') || 'Veloxa' },
+    ...(price && { offers: { '@type': 'Offer', ...price, url: window.location.href } }),
   });
   document.head.append(script);
 }
@@ -112,7 +129,7 @@ export default async function decorate(block) {
   if (fields.description) {
     const desc = document.createElement('div');
     desc.className = 'product-detail-description';
-    desc.append(...fields.description.childNodes);
+    desc.append(...[...fields.description.childNodes].map((node) => node.cloneNode(true)));
     info.append(desc);
   }
 

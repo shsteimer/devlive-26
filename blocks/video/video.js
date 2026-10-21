@@ -4,6 +4,8 @@
  * https://www.hlx.live/developer/block-collection/video
  */
 
+import { fetchPlaceholders } from '../../scripts/placeholders.js';
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /**
@@ -12,23 +14,23 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
  * @returns {string} - 'youtube', 'vimeo', or 'video'
  */
 export function getVideoSource(link) {
-  if (link.includes('youtube') || link.includes('youtu.be')) return 'youtube';
-  if (link.includes('vimeo')) return 'vimeo';
+  const { hostname } = new URL(link, window.location);
+  const isHost = (domain) => hostname === domain || hostname.endsWith(`.${domain}`);
+  if (isHost('youtube.com') || isHost('youtu.be')) return 'youtube';
+  if (isHost('vimeo.com')) return 'vimeo';
   return 'video';
 }
 
 /**
- * Gets a human-readable video type label
+ * Gets the localized play button label
  * @param {string} source - The video source type ('youtube', 'vimeo', or 'video')
- * @returns {string} - Human-readable label
+ * @param {object} placeholders - Locale placeholders
+ * @returns {string} - Play button label
  */
-export function getVideoTypeLabel(source) {
-  const labels = {
-    youtube: 'YouTube video',
-    vimeo: 'Vimeo video',
-    video: 'MP4 video',
-  };
-  return labels[source] || 'video';
+export function getPlayLabel(source, placeholders) {
+  if (source === 'youtube') return placeholders.playYoutubeVideo || 'Play YouTube video';
+  if (source === 'vimeo') return placeholders.playVimeoVideo || 'Play Vimeo video';
+  return placeholders.playVideo || 'Play video';
 }
 
 function embedYoutube(url, autoplay, background) {
@@ -142,14 +144,17 @@ export default async function decorate(block) {
     wrapper.append(placeholder);
 
     if (!autoplay) {
-      const source = getVideoSource(link);
-      const videoType = getVideoTypeLabel(source);
-      const ariaLabel = `Play ${videoType}`;
+      const placeholders = await fetchPlaceholders();
+      const ariaLabel = getPlayLabel(getVideoSource(link), placeholders);
 
-      wrapper.insertAdjacentHTML(
-        'beforeend',
-        `<div class="video-placeholder-play"><button type="button" title="${ariaLabel}" aria-label="${ariaLabel}"></button></div>`,
-      );
+      const play = document.createElement('div');
+      play.className = 'video-placeholder-play';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.title = ariaLabel;
+      button.setAttribute('aria-label', ariaLabel);
+      play.append(button);
+      wrapper.append(play);
       wrapper.addEventListener('click', () => {
         wrapper.remove();
         loadVideoEmbed(block, link, true, false);
