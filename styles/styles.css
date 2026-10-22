@@ -27,6 +27,7 @@
   --color-highlight: var(--color-volt);
   --color-surface: var(--color-stone);
   --color-surface-dark: var(--color-stone-dark);
+  --logo-mark: polygon(0 0, 38% 0, 50% 46%, 62% 0, 100% 0, 62% 100%, 38% 100%);
 
   /* roles */
   --background-color: var(--color-paper);
