@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { openStatus, pickupTime, findStores } from '../store-logic.js';
+import { openStatus, findStores } from '../store-logic.js';
+import STORES from '../stores.js';
 import worker, { getOrigin } from '../index.js';
 
 const store = {
@@ -24,32 +25,38 @@ test('after closing: opens next open day, skipping closed days', () => {
   assert.deepEqual(openStatus(store, at('2026-10-20T19:00:00Z')).opens, { day: 'sat', time: '10:00', today: false });
 });
 
-test('pickup is lead time after now, or after opening', () => {
-  assert.deepEqual(pickupTime(store, at('2026-10-19T08:30:00Z')), { day: 'mon', time: '12:30', today: true });
-  assert.deepEqual(pickupTime(store, at('2026-10-19T06:00:00Z')), { day: 'mon', time: '12:00', today: true });
+test('nearest by distance when an origin is known', () => {
+  const sanJose = { lat: 37.3, lng: -121.9 };
+  const { nearest, stores } = findStores(STORES, { from: sanJose });
+  assert.equal(nearest.length, 6);
+  assert.equal(nearest[0].id, 'san-jose');
+  assert.equal(nearest[1].id, 'palo-alto');
+  assert.ok(nearest.every((s, i) => i === 0 || s.distanceKm >= nearest[i - 1].distanceKm));
+  assert.equal(stores.length, STORES.length);
+  assert.equal(stores[0].hours, undefined);
 });
 
-test('pickup rolls to next open day when not ready before close', () => {
-  assert.deepEqual(pickupTime(store, at('2026-10-19T17:30:00Z')), { day: 'tue', time: '12:00', today: false });
+test('no origin: no nearest, all stores by country then name', () => {
+  const { nearest, stores } = findStores(STORES);
+  assert.deepEqual(nearest, []);
+  const keys = stores.map((s) => `${s.country} ${s.name}`);
+  assert.deepEqual(keys, [...keys].sort((a, b) => a.localeCompare(b)));
+  assert.equal(stores[0].distanceKm, undefined);
 });
 
-test('sorts by distance when an origin is known, by name otherwise', () => {
-  const stores = [
-    { id: 'tokyo', name: 'A Tokyo', lat: 35.66, lng: 139.7, ...store },
-    { id: 'cph', name: 'B Copenhagen', lat: 55.68, lng: 12.57, ...store },
-  ];
-  const near = findStores(stores, { from: { lat: 55.7, lng: 12.6 } });
-  assert.deepEqual(near.map((s) => s.id), ['cph', 'tokyo']);
-  assert.ok(near[0].distanceKm < 5);
-  assert.equal(near[0].hours, undefined);
-  assert.deepEqual(findStores(stores).map((s) => s.id), ['tokyo', 'cph']);
+test('every store has valid data', () => {
+  STORES.forEach((s) => {
+    assert.match(s.country, /^[A-Z]{2}$/, s.id);
+    assert.doesNotThrow(() => openStatus(s, new Date()), s.id);
+  });
+  assert.equal(new Set(STORES.map((s) => s.id)).size, STORES.length);
 });
 
-test('browser coordinates win over edge geo; invalid input falls back', () => {
+test('query coordinates win over edge geo; invalid input falls back', () => {
   const cf = {
     latitude: '55.68', longitude: '12.57', city: 'Copenhagen', country: 'DK',
   };
-  assert.equal(getOrigin(new URL('https://x/api/stores?lat=48.86&lng=2.36'), cf).source, 'browser');
+  assert.equal(getOrigin(new URL('https://x/api/stores?lat=48.86&lng=2.36'), cf).source, 'query');
   assert.equal(getOrigin(new URL('https://x/api/stores?lat=999&lng=2'), cf).source, 'edge');
   assert.equal(getOrigin(new URL('https://x/api/stores')).source, 'none');
 });
@@ -59,7 +66,7 @@ test('CORS only for known origins', async () => {
   const ok = await get('https://main--devlive-26--shsteimer.aem.page');
   assert.equal(ok.headers.get('access-control-allow-origin'), 'https://main--devlive-26--shsteimer.aem.page');
   assert.equal(ok.headers.get('x-cache'), 'MISS');
-  assert.equal((await ok.json()).stores.length, 8);
+  assert.equal((await ok.json()).stores.length, STORES.length);
   const bad = await get('https://evil.example');
   assert.equal(bad.headers.get('access-control-allow-origin'), null);
 });

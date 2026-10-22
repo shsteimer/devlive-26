@@ -19,7 +19,7 @@ function parseCoord(value, max) {
 export function getOrigin(url, cf = {}) {
   const lat = parseCoord(url.searchParams.get('lat'), 90);
   const lng = parseCoord(url.searchParams.get('lng'), 180);
-  if (lat !== null && lng !== null) return { source: 'browser', lat: round(lat), lng: round(lng) };
+  if (lat !== null && lng !== null) return { source: 'query', lat: round(lat), lng: round(lng) };
   const cfLat = parseCoord(cf.latitude ?? null, 90);
   const cfLng = parseCoord(cf.longitude ?? null, 180);
   if (cfLat !== null && cfLng !== null) {
@@ -61,7 +61,7 @@ async function handleStores(request, url, ctx) {
   }
 
   const body = {
-    stores: findStores(STORES, { from: from.lat !== undefined ? from : null }),
+    ...findStores(STORES, { from: from.lat !== undefined ? from : null }),
     generated: new Date().toISOString(),
   };
   const headers = { 'cache-control': `public, max-age=${MAX_AGE}` };

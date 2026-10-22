@@ -1,5 +1,5 @@
 export const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-export const PICKUP_LEAD_MINUTES = 120;
+export const NEAREST_COUNT = 6;
 
 const toMinutes = (time) => {
   const [h, m] = time.split(':').map(Number);
@@ -43,15 +43,6 @@ export function openStatus(store, date) {
   return { open: false };
 }
 
-export function pickupTime(store, date, lead = PICKUP_LEAD_MINUTES) {
-  const now = localNow(date, store.timeZone);
-  for (const { day, offset, open, close } of upcomingDays(store, now)) {
-    const ready = (offset === 0 ? Math.max(now.minutes, open) : open) + lead;
-    if (ready <= close) return { day, time: toTime(ready), today: offset === 0 };
-  }
-  return null;
-}
-
 export function distanceKm(a, b) {
   const rad = (deg) => (deg * Math.PI) / 180;
   const dLat = rad(b.lat - a.lat);
@@ -61,22 +52,24 @@ export function distanceKm(a, b) {
   return 6371 * 2 * Math.asin(Math.sqrt(h));
 }
 
-export function findStores(stores, { from, date = new Date(), limit } = {}) {
-  const result = stores.map(({
-    id, name, brand, address, lat, lng, ...store
+export function findStores(stores, { from, date = new Date(), count = NEAREST_COUNT } = {}) {
+  const all = stores.map(({
+    id, name, brand, country, address, lat, lng, timeZone, hours,
   }) => ({
     id,
     name,
     brand,
+    country,
     address,
     lat,
     lng,
     ...(from && { distanceKm: Math.round(distanceKm(from, { lat, lng }) * 10) / 10 }),
-    status: openStatus(store, date),
-    pickup: pickupTime(store, date),
+    status: openStatus({ timeZone, hours }, date),
   }));
-  result.sort(from
-    ? (a, b) => a.distanceKm - b.distanceKm
-    : (a, b) => a.name.localeCompare(b.name));
-  return limit ? result.slice(0, limit) : result;
+  const nearest = from
+    ? [...all].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, count)
+    : [];
+  all.sort((a, b) => a.country.localeCompare(b.country) || a.name.localeCompare(b.name));
+  return { nearest, stores: all };
 }
+
