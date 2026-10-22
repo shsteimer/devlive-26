@@ -4,6 +4,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v6
     - name: Use Node.js 24
@@ -11,5 +13,31 @@ jobs:
       with:
         node-version: 24
     - run: npm ci
+    - name: Sync vendor/ on dependency bot branches, otherwise require a clean tree
+      run: |
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "Working tree clean after npm ci."
+          exit 0
+        fi
+        case "${{ github.actor }}" in
+          renovate\[bot\]|dependabot\[bot\])
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add vendor/
+            git commit -m "chore: sync vendor bundles after dependency update"
+            git push origin "HEAD:refs/heads/${{ github.ref_name }}"
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "::error::Still dirty after vendor commit; something besides vendor/ changed."
+              git status
+              exit 1
+            fi
+            ;;
+          *)
+            echo "::error::Working tree is dirty after npm ci (postinstall re-vendors). Run npm install and commit vendor/."
+            git status
+            git diff --stat HEAD
+            exit 1
+            ;;
+        esac
     - run: npm run lint
     - run: npm test
