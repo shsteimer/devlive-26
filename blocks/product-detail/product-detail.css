@@ -11,7 +11,7 @@
 .product-detail-main-image {
   aspect-ratio: 1;
   overflow: hidden;
-  background-color: var(--color-stone);
+  background-color: var(--color-surface);
   line-height: 0;
 }
 
@@ -35,14 +35,14 @@
   padding: 0;
   border: 2px solid transparent;
   border-radius: 0;
-  background: var(--color-stone);
+  background: var(--color-surface);
   line-height: 0;
   white-space: normal;
 }
 
 .product-detail-thumbs button:hover,
 .product-detail-thumbs button:focus-visible {
-  background: var(--color-stone);
+  background: var(--color-surface);
   border-color: var(--color-gray);
 }
 
@@ -119,7 +119,7 @@
 }
 
 .product-detail-options.invalid button {
-  border-color: var(--color-flame-dark);
+  border-color: var(--color-brand-dark);
 }
 
 .product-detail-add {

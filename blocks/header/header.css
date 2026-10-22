@@ -140,7 +140,7 @@ header .nav-brand a::before {
   content: '';
   width: 22px;
   height: 22px;
-  background-color: var(--color-flame);
+  background-color: var(--color-brand);
   clip-path: polygon(0 0, 38% 0, 50% 46%, 62% 0, 100% 0, 62% 100%, 38% 100%);
 }
 

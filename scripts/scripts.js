@@ -11,6 +11,8 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  getMetadata,
+  toClassName,
 } from './aem.js';
 import { getLocale, isGatedPage, localizeLinks } from './shared.js';
 
@@ -81,9 +83,15 @@ export function decorateMain(main) {
   decorateBlocks(main);
 }
 
+async function loadTheme() {
+  const theme = toClassName(getMetadata('theme'));
+  if (theme) await loadCSS(`${window.hlx.codeBasePath}/styles/themes/${theme}.css`);
+}
+
 async function loadEager(doc) {
   document.documentElement.lang = getLocale().htmlLang;
   decorateTemplateAndTheme();
+  await loadTheme();
 
   const main = doc.querySelector('main');
   if (main) {

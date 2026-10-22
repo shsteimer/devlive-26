@@ -21,15 +21,22 @@
   --color-flame: #e8471c;
   --color-flame-dark: #b8340f;
 
+  /* brand */
+  --color-brand: var(--color-flame);
+  --color-brand-dark: var(--color-flame-dark);
+  --color-highlight: var(--color-volt);
+  --color-surface: var(--color-stone);
+  --color-surface-dark: var(--color-stone-dark);
+
   /* roles */
   --background-color: var(--color-paper);
-  --light-color: var(--color-stone);
+  --light-color: var(--color-surface);
   --text-color: var(--color-ink);
   --muted-color: var(--color-gray);
-  --accent-color: var(--color-volt);
+  --accent-color: var(--color-highlight);
   --link-color: var(--color-ink);
-  --link-hover-color: var(--color-flame-dark);
-  --border-color: var(--color-stone-dark);
+  --link-hover-color: var(--color-brand-dark);
+  --border-color: var(--color-surface-dark);
 
   /* fonts */
   --body-font-family: roboto, roboto-fallback, sans-serif;
@@ -230,8 +237,8 @@ a.button:hover,
 button:hover,
 a.button:focus-visible,
 button:focus-visible {
-  background-color: var(--color-flame-dark);
-  border-color: var(--color-flame-dark);
+  background-color: var(--color-brand-dark);
+  border-color: var(--color-brand-dark);
   color: var(--color-paper);
 }
 
@@ -332,7 +339,7 @@ main > .section.dark {
   --background-color: var(--color-ink);
   --text-color: var(--color-paper);
   --link-color: var(--color-paper);
-  --link-hover-color: var(--color-volt);
+  --link-hover-color: var(--color-highlight);
   --muted-color: #b9bbb8;
   --light-color: #1d1f1e;
   --border-color: #2e302f;
@@ -342,7 +349,7 @@ main > .section.dark {
 }
 
 main > .section.accent {
-  --background-color: var(--color-volt);
+  --background-color: var(--color-highlight);
   --muted-color: var(--color-ink);
 
   background-color: var(--background-color);
@@ -351,8 +358,8 @@ main > .section.accent {
 
 main > .section.dark a.button:hover,
 main > .section.dark a.button:focus-visible {
-  background-color: var(--color-volt);
-  border-color: var(--color-volt);
+  background-color: var(--color-highlight);
+  border-color: var(--color-highlight);
   color: var(--color-ink);
 }
 

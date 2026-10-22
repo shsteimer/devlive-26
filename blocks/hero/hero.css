@@ -80,8 +80,8 @@
 }
 
 .hero a.button:any-link {
-  border-color: var(--color-volt);
-  background-color: var(--color-volt);
+  border-color: var(--color-highlight);
+  background-color: var(--color-highlight);
   color: var(--color-ink);
 }
 
@@ -111,7 +111,7 @@
 
 .hero.light {
   color: var(--color-ink);
-  background-color: var(--color-stone);
+  background-color: var(--color-surface);
 }
 
 .hero.light .hero-media::after {

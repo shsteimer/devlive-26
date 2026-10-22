@@ -45,10 +45,10 @@
   min-width: 2.75rem;
   min-height: 2.75rem;
   margin: 0;
-  border: 1px solid var(--color-flame-dark);
+  border: 1px solid var(--color-brand-dark);
   border-right: 0;
   border-radius: 8px 0 0 8px;
-  background: var(--color-flame-dark);
+  background: var(--color-brand-dark);
   color: var(--color-paper);
   padding: 0.75rem 0.5rem;
   cursor: pointer;
@@ -116,7 +116,7 @@
   display: block;
   width: 100%;
   margin: 0;
-  border: 1px solid var(--color-stone-dark);
+  border: 1px solid var(--color-surface-dark);
   border-radius: 4px;
   background: var(--color-paper);
   color: var(--text-color);
@@ -133,8 +133,8 @@
 }
 
 .auth-option-button:hover {
-  border-color: var(--color-flame-dark);
-  background: var(--color-stone);
+  border-color: var(--color-brand-dark);
+  background: var(--color-surface);
 }
 
 .auth-option-button.current-state {

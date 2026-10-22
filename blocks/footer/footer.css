@@ -2,7 +2,7 @@ footer {
   --background-color: var(--color-ink);
   --text-color: var(--color-paper);
   --link-color: var(--color-paper);
-  --link-hover-color: var(--color-volt);
+  --link-hover-color: var(--color-highlight);
   --border-color: #2e302f;
 
   background-color: var(--background-color);
@@ -61,8 +61,8 @@ footer .footer a:hover {
 }
 
 footer .footer a.button:any-link {
-  border-color: var(--color-volt);
-  background-color: var(--color-volt);
+  border-color: var(--color-highlight);
+  background-color: var(--color-highlight);
   color: var(--color-ink);
 }
 
