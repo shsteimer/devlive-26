@@ -1,48 +1,46 @@
 import { fetchPlaceholders } from '../../scripts/placeholders.js';
 
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const supportsTransitionTypes = typeof ViewTransition !== 'undefined' && 'types' in ViewTransition.prototype;
+
+export function getTargetIndex(requested, count) {
+  return ((requested % count) + count) % count;
+}
+
 function updateActiveSlide(slide) {
   const block = slide.closest('.carousel');
   const slideIndex = parseInt(slide.dataset.slideIndex, 10);
   block.dataset.activeSlide = slideIndex;
 
-  const slides = block.querySelectorAll('.carousel-slide');
-
-  slides.forEach((aSlide, idx) => {
-    aSlide.setAttribute('aria-hidden', idx !== slideIndex);
-    aSlide.querySelectorAll('a').forEach((link) => {
-      if (idx !== slideIndex) {
-        link.setAttribute('tabindex', '-1');
-      } else {
-        link.removeAttribute('tabindex');
-      }
-    });
+  block.querySelectorAll('.carousel-slide').forEach((aSlide, idx) => {
+    aSlide.inert = idx !== slideIndex;
   });
 
-  const indicators = block.querySelectorAll('.carousel-slide-indicator');
-  indicators.forEach((indicator, idx) => {
-    const button = indicator.querySelector('button');
-    if (idx !== slideIndex) {
-      button.removeAttribute('disabled');
-      button.removeAttribute('aria-current');
-    } else {
-      button.setAttribute('disabled', true);
-      button.setAttribute('aria-current', true);
-    }
+  block.querySelectorAll('.carousel-slide-indicator button').forEach((button, idx) => {
+    if (idx === slideIndex) button.setAttribute('aria-current', true);
+    else button.removeAttribute('aria-current');
   });
 }
 
 function showSlide(block, slideIndex = 0) {
   const slides = block.querySelectorAll('.carousel-slide');
-  let realSlideIndex = slideIndex < 0 ? slides.length - 1 : slideIndex;
-  if (slideIndex >= slides.length) realSlideIndex = 0;
-  const activeSlide = slides[realSlideIndex];
+  const target = slides[getTargetIndex(slideIndex, slides.length)];
+  const container = block.querySelector('.carousel-slides');
+  const wraps = slideIndex < 0 || slideIndex >= slides.length;
+  const scroll = (behavior) => container.scrollTo({ top: 0, left: target.offsetLeft, behavior });
 
-  activeSlide.querySelectorAll('a').forEach((link) => link.removeAttribute('tabindex'));
-  block.querySelector('.carousel-slides').scrollTo({
-    top: 0,
-    left: activeSlide.offsetLeft,
-    behavior: 'smooth',
-  });
+  if (reducedMotion.matches) {
+    scroll('instant');
+  } else if (!wraps) {
+    scroll('smooth');
+  } else if (supportsTransitionTypes) {
+    document.startViewTransition({
+      update: () => scroll('instant'),
+      types: [slideIndex < 0 ? 'carousel-prev' : 'carousel-next'],
+    });
+  } else {
+    scroll('instant');
+  }
 }
 
 function bindEvents(block) {
@@ -109,6 +107,7 @@ export default async function decorate(block) {
 
   const slidesWrapper = document.createElement('ul');
   slidesWrapper.classList.add('carousel-slides');
+  slidesWrapper.style.viewTransitionName = `carousel-${carouselId}-slides`;
   block.prepend(slidesWrapper);
 
   let slideIndicators;

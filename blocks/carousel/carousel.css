@@ -14,6 +14,41 @@
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   overflow: scroll clip;
+  view-transition-class: carousel-slides;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel .carousel-slides {
+    scroll-behavior: auto;
+  }
+}
+
+:root:active-view-transition-type(carousel-next)::view-transition-old(*.carousel-slides) {
+  animation: carousel-slide-out 0.4s ease both;
+}
+
+:root:active-view-transition-type(carousel-next)::view-transition-new(*.carousel-slides) {
+  animation: carousel-slide-in 0.4s ease both;
+}
+
+:root:active-view-transition-type(carousel-prev)::view-transition-old(*.carousel-slides) {
+  animation: carousel-slide-in 0.4s ease both reverse;
+}
+
+:root:active-view-transition-type(carousel-prev)::view-transition-new(*.carousel-slides) {
+  animation: carousel-slide-out 0.4s ease both reverse;
+}
+
+::view-transition-image-pair(*.carousel-slides) {
+  overflow: clip;
+}
+
+@keyframes carousel-slide-out {
+  to { transform: translateX(-100%); }
+}
+
+@keyframes carousel-slide-in {
+  from { transform: translateX(100%); }
 }
 
 .carousel .carousel-slides::-webkit-scrollbar {
@@ -89,7 +124,7 @@
   transition: background-color 0.2s;
 }
 
-.carousel .carousel-slide-indicator button:disabled,
+.carousel .carousel-slide-indicator button[aria-current],
 .carousel .carousel-slide-indicator button:hover,
 .carousel .carousel-slide-indicator button:focus-visible {
   background-color: var(--text-color);

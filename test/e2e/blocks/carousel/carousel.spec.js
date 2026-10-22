@@ -28,3 +28,18 @@ test('next control advances the current slide indicator', async ({ page }) => {
   await expect(indicators.nth(1)).toHaveAttribute('aria-current', 'true');
   await expect(indicators.first()).not.toHaveAttribute('aria-current', 'true');
 });
+
+test('previous control wraps from the first slide to the last', async ({ page }) => {
+  const block = page.locator('.carousel');
+  const indicators = block.getByRole('navigation').getByRole('button');
+  const prev = block.locator('button:not(nav button)').first();
+
+  await prev.click();
+  await expect(indicators.last()).toHaveAttribute('aria-current', 'true');
+});
+
+test('only the current slide is exposed to assistive technology', async ({ page }) => {
+  const slides = page.locator('.carousel li[aria-labelledby]');
+  await expect(slides.first()).not.toHaveAttribute('inert');
+  await expect(slides.nth(1)).toHaveAttribute('inert');
+});
