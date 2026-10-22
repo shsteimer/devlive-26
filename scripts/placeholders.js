@@ -14,35 +14,38 @@ import { toCamelCase } from './aem.js';
 import { getLocale } from './shared.js';
 
 /**
- * Gets placeholders object.
+ * Loads one placeholders sheet as a key/text map.
+ * @param {string} path Folder of the sheet
+ * @returns {Promise<object>} Placeholders, empty if missing
+ */
+async function loadSheet(path) {
+  try {
+    const resp = await fetch(`${path}/placeholders.json`);
+    if (!resp.ok) return {};
+    const { data = [] } = await resp.json();
+    return Object.fromEntries(data
+      .filter((placeholder) => placeholder.Key)
+      .map((placeholder) => [toCamelCase(placeholder.Key.trim()), (placeholder.Text || '').trim()]));
+  } catch (e) {
+    return {};
+  }
+}
+
+/**
+ * Gets placeholders object. Region sheets override their language sheet.
  * @param {string} [prefix] Location of placeholders
  * @returns {object} Window placeholders object
  */
 export async function fetchPlaceholders(prefix = getLocale().prefix || 'default') {
   window.placeholders = window.placeholders || {};
   if (!window.placeholders[prefix]) {
-    window.placeholders[prefix] = new Promise((resolve) => {
-      fetch(`${prefix === 'default' ? '' : prefix}/placeholders.json`)
-        .then((resp) => {
-          if (resp.ok) {
-            return resp.json();
-          }
-          return {};
-        }).then((json) => {
-          const placeholders = {};
-          json.data
-            .filter((placeholder) => placeholder.Key)
-            .forEach((placeholder) => {
-              placeholders[toCamelCase(placeholder.Key.trim())] = (placeholder.Text || '').trim();
-            });
-          window.placeholders[prefix] = placeholders;
-          resolve(window.placeholders[prefix]);
-        }).catch(() => {
-          // error loading placeholders
-          window.placeholders[prefix] = {};
-          resolve(window.placeholders[prefix]);
-        });
-    });
+    const path = prefix === 'default' ? '' : prefix;
+    const parent = path.split('/').slice(0, -1).join('/');
+    window.placeholders[prefix] = Promise.all([parent ? loadSheet(parent) : {}, loadSheet(path)])
+      .then(([base, own]) => {
+        window.placeholders[prefix] = { ...base, ...own };
+        return window.placeholders[prefix];
+      });
   }
-  return window.placeholders[`${prefix}`];
+  return window.placeholders[prefix];
 }
