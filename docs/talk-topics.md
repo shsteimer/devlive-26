@@ -13,7 +13,7 @@ Top 10 countdown of objections we hear most, each answered with a real EDS solut
 | 5 | Our Lighthouse score was 100 until we added all our analytics and mar-tech tags. I was promised great performance, what now? | Long; martech plugin |
 | 4 | Why are we being told to author content in documents? | Long |
 | 3 | Our site is in 120 countries, 4 regions, and 75 languages, all with unique content. How do we manage all of that? | Long; locale folders, DA translation config, repoless sub-brand sites |
-| 2 | No React? What if I need a carousel? And what about our design system? | Long |
+| 2 | No React? What about interactive components, third-party libraries and our design system? | Long |
 | 1 | If there's no server, where does my business logic go? | Long |
 
 ## Demo site

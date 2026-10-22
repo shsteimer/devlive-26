@@ -1,6 +1,14 @@
-# Topic 2 – "No React? What if I need a carousel? And what about our design system?"
+# Topic 2 – "No React? What about interactive components, third-party libraries and our design system?"
 
 Short answer: **EDS is the web platform; bring what you need, the right way.** Vanilla JS and CSS cover most needs, a carousel included. When a library earns its place, vendor it and load it only in the block that uses it, after LCP. A design system becomes tokens and blocks.
+
+## Slides
+
+1. **Why the web platform?** Browsers now ship modules, components, scroll-snap, View Transitions, `inert`, `<dialog>` and container queries. No framework runtime before content. No build step. Standards don't get deprecated. Anyone who knows HTML, CSS and JS can contribute.
+2. **Using a framework the right way.** Any framework works; it's JavaScript in a block. Load it per block, keep it after LCP, vendor it, keep it authorable. Anti-pattern: one big app bundle on every page.
+3. **Design systems the right way.** Tokens are CSS custom properties, components are blocks, brands are theme files, docs are the DA block library. Anti-pattern: the design system as one npm bundle on every page.
+4. **Demo.**
+5. **Close.** Can the browser do it? Use vanilla. Need a library? Vendor it, per block, after LCP. Whole app? Ask whether it belongs on this page. Subtitle: "Same carousel: 5.5 KB vs 98 KB."
 
 ## Talk points
 
