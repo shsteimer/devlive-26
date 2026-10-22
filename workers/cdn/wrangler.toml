@@ -1,5 +1,6 @@
 name = "devlive-26-cdn"
 main = "index.js"
+account_id = "bf19ac6f539e93e558258eaf076d3fd7"
 compatibility_date = "2026-03-13"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
