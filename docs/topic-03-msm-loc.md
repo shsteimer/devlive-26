@@ -66,7 +66,7 @@ At scale (slide only): per-language indexes and sitemaps with hreflang; bulk met
 | Theme loader + `styles/themes/trailcraft.css` | agent | done (`48972ed`, `936126b`) |
 | Placeholders: region overrides language | agent | done (`8a576a9`) |
 | Create `devlive-satelite` repoless site + msm config row | Sean | done |
-| Trailcraft content: metadata, `en/index`, `en/nav`, `en/footer`, `en/trail-guides` | agent | in DA, not previewed |
-| Translate Trailcraft overrides to `/de` (Loc in satellite) | Sean | |
-| Trim `/en/gb/placeholders` to the UK difference | agent | |
+| Trailcraft content: metadata, `en/index`, `en/nav`, `en/footer`, `en/trail-guides` | agent | done, live |
+| Translate Trailcraft overrides to `/de` (Loc in satellite) | Sean | done, live |
+| Trim `/en/gb/placeholders` to the UK difference | agent | done, live |
 | Reset demo pages (CH price, summit-shell description) before the talk | Sean | |
