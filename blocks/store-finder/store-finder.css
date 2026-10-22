@@ -1,0 +1,96 @@
+.store-finder {
+  display: grid;
+  gap: 24px;
+}
+
+.store-finder .store-finder-intro > :first-child {
+  margin-top: 0;
+}
+
+.store-finder .store-finder-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.store-finder .store-finder-heading {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-font-size-s);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.store-finder .store-finder-toolbar .button {
+  margin: 0;
+}
+
+.store-finder[aria-busy='true'] .store-finder-list {
+  opacity: 0.5;
+}
+
+.store-finder .store-finder-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.store-finder .store-finder-list li {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background-color: var(--light-color);
+}
+
+.store-finder .store-finder-list h3 {
+  margin: 0 0 4px;
+  font-size: var(--heading-font-size-s);
+}
+
+.store-finder .store-finder-list p {
+  margin: 0;
+  font-size: var(--body-font-size-s);
+}
+
+.store-finder .store-finder-distance,
+.store-finder .store-finder-pickup {
+  color: var(--muted-color);
+}
+
+.store-finder .store-finder-status {
+  font-weight: 700;
+}
+
+.store-finder .store-finder-status::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background-color: var(--muted-color);
+  vertical-align: middle;
+}
+
+.store-finder .open .store-finder-status::before {
+  background-color: #1f8a4c;
+}
+
+@media (width >= 600px) {
+  .store-finder .store-finder-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .store-finder .store-finder-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -1,0 +1,11 @@
+name = "devlive-26-api"
+main = "index.js"
+compatibility_date = "2026-03-13"
+workers_dev = true
+
+routes = [
+  { pattern = "devlive.shsteimer.com/api/*", zone_name = "shsteimer.com" },
+]
+
+[observability.logs]
+enabled = true
