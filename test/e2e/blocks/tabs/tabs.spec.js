@@ -27,3 +27,40 @@ test('selecting a tab exposes its panel and deselects the others', async ({ page
   await expect(block.getByRole('tabpanel')).toHaveCount(1);
   await expect(block.getByRole('tabpanel')).toHaveAccessibleName(secondName);
 });
+
+test('only the selected tab is in the tab order', async ({ page }) => {
+  const tabs = page.locator('.tabs').getByRole('tab');
+  const body = page.locator('main h1');
+
+  await body.click();
+  await page.keyboard.press('Tab');
+  await expect(tabs.first()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(tabs.nth(1)).not.toBeFocused();
+});
+
+test('arrow, Home and End keys move focus and selection', async ({ page }) => {
+  const block = page.locator('.tabs');
+  const tabs = block.getByRole('tab');
+  const count = await tabs.count();
+
+  await tabs.first().focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(tabs.nth(1)).toBeFocused();
+  await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('End');
+  await expect(tabs.nth(count - 1)).toBeFocused();
+  await expect(tabs.nth(count - 1)).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(tabs.first()).toBeFocused();
+  await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(tabs.nth(count - 1)).toBeFocused();
+
+  await page.keyboard.press('Home');
+  await expect(tabs.first()).toBeFocused();
+  await expect(block.getByRole('tabpanel')).toHaveCount(1);
+});
